@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\KamuAIEngine\LatokoneAI.Engine.csproj" />
-    <ProjectReference Include="..\..\KamuCommon\LatokoneAI.Common.csproj" />
+    <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
+    <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
   </ItemGroup>
 
 
