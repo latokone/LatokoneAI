@@ -1,0 +1,25 @@
+﻿namespace LatokoneAI.Common.Interfaces
+{
+    public interface ITextToSpeech : IDisposable
+    {
+        public void Init();
+        public void Start();
+
+        public void FillBuffer(float[] buffer, int offset, int count);
+
+        public void StopTalking();
+
+        public void AddPartOfASentence(string txt);
+    }
+
+    public enum TtsPluginIPCMessageType
+    {
+        Init,
+        Start,
+        FillBuffer,
+        StopTalking,
+        AddPartOfASentence,
+        Release,
+        AudioOutputAvailable
+    }
+}
