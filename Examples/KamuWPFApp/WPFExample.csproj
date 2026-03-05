@@ -16,25 +16,6 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="3rdParty\**" />
-    <Compile Remove="Audio\**" />
-    <Compile Remove="LLM\**" />
-    <Compile Remove="PluginHosts\**" />
-    <EmbeddedResource Remove="3rdParty\**" />
-    <EmbeddedResource Remove="Audio\**" />
-    <EmbeddedResource Remove="LLM\**" />
-    <EmbeddedResource Remove="PluginHosts\**" />
-    <None Remove="3rdParty\**" />
-    <None Remove="Audio\**" />
-    <None Remove="LLM\**" />
-    <None Remove="PluginHosts\**" />
-    <Page Remove="3rdParty\**" />
-    <Page Remove="Audio\**" />
-    <Page Remove="LLM\**" />
-    <Page Remove="PluginHosts\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Remove="Common\MainWindowViewModel.cs" />
     <Compile Remove="KamuAI.cs" />
   </ItemGroup>
@@ -49,20 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\KamuAIEngine\LatokoneAI.Engine.csproj" />
-    <ProjectReference Include="..\..\KamuCommon\LatokoneAI.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="LLamaSharp">
-      <HintPath>..\..\3rdParty\LLamaSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-      <HintPath>..\..\3rdParty\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Whisper.net">
-      <HintPath>..\..\3rdParty\Whisper.net.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
+    <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
