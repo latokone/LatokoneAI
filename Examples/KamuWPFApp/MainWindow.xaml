@@ -1,0 +1,56 @@
+﻿<Window x:Class="WPFExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="clr-namespace:WPFExample"
+        mc:Ignorable="d"
+        Title="KamuAI" Height="650" Width="1200">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Chat History" Foreground="DarkSlateGray" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
+                <TextBox BorderThickness="1" BorderBrush="Gray" Grid.Row="1" x:Name="tbChat" IsReadOnly="True" Background="LightGray" Foreground="Black" MinHeight="100" FontSize="16" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"></TextBox>
+            </Grid>
+            <GridSplitter Grid.Row="0" Grid.Column="1"
+                      Width="5" HorizontalAlignment="Stretch"
+                      ResizeBehavior="PreviousAndNext"
+                      ResizeDirection="Columns" />
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="80"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="80"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>                    
+                </Grid.RowDefinitions>
+                <TextBlock Text="Input Audio Visualizer" Foreground="DarkSlateGray" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
+                <l:VisualizerControl x:Name="visualizerIn" Grid.Row="1"/>
+                <TextBlock Text="Output Audio Visualizer" Foreground="DarkSlateGray" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2"/>
+                <l:VisualizerControl x:Name="visualizerOut" Grid.Row="3"/>
+                <TextBlock Text="Object Detection and Recognition" Foreground="DarkSlateGray" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="4"/>
+                <Image Source="{Binding ObjectDetectionImage}" x:Name="imagePreview" Grid.Row="5" Stretch="Fill"></Image>
+            </Grid>
+        </Grid>
+        <TextBlock Text="Whisper Transcription" Foreground="DarkSlateGray" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2"/>
+        <TextBox BorderThickness="1" BorderBrush="Gray" x:Name="tbWhistper" IsReadOnly="True" Background="LightGray" Foreground="DarkGreen" Grid.Row="3" Height="100" FontSize="16" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"></TextBox>
+        <TextBox BorderThickness="1" x:Name="tbUserInput" Grid.Row="4" Height="40" FontWeight="Bold" FontSize="16" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" ></TextBox>
+    </Grid>
+</Window>
