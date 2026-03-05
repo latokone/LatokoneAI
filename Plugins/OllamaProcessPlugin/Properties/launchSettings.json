@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OllamaProcessPlugin": {
+      "commandName": "Project",
+      "commandLineArgs": "--IpcID OllamaPlugin"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LlamaChatProcessPlugin": {
+      "commandName": "Project",
+      "commandLineArgs": "--IpcID LlamaPlugin"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KokoroProcessPlugin": {
+      "commandName": "Project",
+      "commandLineArgs": "--ipcID KokoroPluginID --SampleRate 44100 --ModelIndex 0"
+    }
+  }
+}
