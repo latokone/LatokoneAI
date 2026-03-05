@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\KamuCommon\LatokoneAI.Common.csproj" />
+    <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
