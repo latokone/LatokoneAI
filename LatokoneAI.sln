@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatokoneAI.Common", "KamuCommon\LatokoneAI.Common.csproj", "{C132343C-8834-4355-B0C2-383383E7449D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatokoneAI.Common", "Common\LatokoneAI.Common.csproj", "{C132343C-8834-4355-B0C2-383383E7449D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatokoneAI.Engine", "KamuAIEngine\LatokoneAI.Engine.csproj", "{B15399F6-DFDB-465D-A781-D758E669D9E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LatokoneAI.Engine", "Engine\LatokoneAI.Engine.csproj", "{B15399F6-DFDB-465D-A781-D758E669D9E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoloProcessPlugin", "Plugins\YoloPluginProcess\YoloProcessPlugin.csproj", "{BB8FBBE9-6C41-8425-A7AE-9EB9FBB79D3E}"
 EndProject
