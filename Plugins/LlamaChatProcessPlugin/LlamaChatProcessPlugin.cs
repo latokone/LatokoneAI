@@ -7,6 +7,9 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
+using System.Xml.Serialization;
+using static LatokoneAI.Common.AcceleratorTypes;
 
 
 class LLmaChatProcessPlugin
@@ -24,54 +27,37 @@ class LLmaChatProcessPlugin
     ChatSession session;
     private SessionState sessionInitialState;
     internal ConcurrentBag<string> todoList = new ConcurrentBag<string>();
+    private Accelerator[] acceleratorPriority = new Accelerator[] { Accelerator.Cpu };
 
     readonly ManualResetEvent workAvailable = new(false);
+    LlmModel llmModel = new LlmModel() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "phi-2.Q5_K_M.gguf", Filename = @"D:\Downloads\Models\phi-2.Q5_K_M.gguf" };
+    Dictionary<Accelerator, LlmAccelerator> llmAccelerators = new Dictionary<Accelerator, LlmAccelerator>()
+    {
+        [Accelerator.Cpu] = new LlmAccelerator() { Name = "AVX2", Library = "runtimes\\win-x64\\native\\avx2\\llama.dll" },
+        [Accelerator.Vulcan] = new LlmAccelerator() { Name = "Vulcan", Library = "runtimes\\win-x64\\native\\vulcan\\llama.dll" }
+    };
+
     LlmConfig config = new LlmConfig()
     {
-        Models = new List<LlmModel>()
-            {
-                new LlmModel() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-IQ2_M.gguf", Name = "Ahma-7B-Instruct.Q6_K", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-7B-Instruct.Q6_K.gguf") },
-                new LlmModel() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Ahma-7B.Q4_K_S", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-7B.Q4_K_S.gguf") },
-                new LlmModel() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Ahma-3B.Q6_K", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-3B.Q6_K.gguf") },
-                new LlmModel() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Phi-3.5-mini-instruct_Uncensored-Q6_K_L", Filename = "D:\\Downloads\\Models\\Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf" },
-
-            },
-        Accelerators = new List<LlmAccelerator>()
-            {
-                new LlmAccelerator() { Name = "AVX2", Library = AppContext.BaseDirectory + "\\runtimes\\win-x64\\native\\avx2\\llama.dll" },
-                new LlmAccelerator() { Name = "Vulcan", Library = AppContext.BaseDirectory + ".\\runtimes\\win-x64\\native\\vulcan\\llama.dll" }
-            },
-        SelectedModel = 3,
+        SelectedModel = 0,
         SelectedAccelerator = 0,
+        SelectedLanguage = 0,
 
-        SelectedLanguage = 0, // English
+        SystemRole = "Transcript of a dialog, where the User interacts with an Assistant named Bob. Bob is helpful, kind, honest, good at writing, and never fails to answer the User's requests immediately and with precision.",
 
-        SystemRoles = new string[]
-{
-                "Transcript of a dialog, where the User interacts with an Assistant named ReBuzz. ReBuzz is helpful, kind, honest, good at writing, and never fails to answer the User's requests immediately and with precision.",
-                "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti mutta lyhyesti. Vastauksesi eivät saa sisältää mitään haitallista, epäeettistä, rasistista, seksististä, vaarallista tai laitonta sisältöä. Jos kysymyksessä ei ole mitään järkeä tai se ei ole asiasisällöltään johdonmukainen, selitä miksi sen sijaan, että vastaisit jotain väärin. Jos et tiedä vastausta kysymykseen, älä kerro väärää tietoa.",
-},
-
-        ChatMessages = new string[][]
-{
+        ChatHistory = new string[][]
+        {
                 new string[] {
                 "Hi Assistant.",
                 "Hi. How can I assist you today?",
-                },
-                new string[] {
-                "Hei avustaja.",
-                "Hei. Miten voin auttaa sinua tänään?",
-                },
-},
+                }
+        },
 
         AntiPromptLists = new List<string[]>()
             {
             new string[] { "User" },
-            new string[] { "</s>", "[/Inst]", "User:", "Käyttäjä:" }
             },
     };
-
-    private string ipcID;
 
     static void Main(string[] args)
     {
@@ -88,11 +74,6 @@ class LLmaChatProcessPlugin
 
     public LLmaChatProcessPlugin(string ipcID)
     {
-        this.ipcID = ipcID;
-
-        ClearHistory();
-        InitLlama();
-
         if (sm == null)
         {
             sm = new tiesky.com.SharmNpc(ipcID, tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler, externalProcessing: false);
@@ -123,8 +104,48 @@ class LLmaChatProcessPlugin
             case LlmPluginIPCMessageType.ResetState:
                 ResetState();
                 break;
+            case LlmPluginIPCMessageType.Config:
+                string configString = Encoding.UTF8.GetString(data, 4, data.Length - 4);
+                XmlSerializer xmlSerializer = new XmlSerializer(config.GetType());
+
+                using (StringReader textReader = new StringReader(configString))
+                {
+                    config = (LlmConfig)xmlSerializer.Deserialize(textReader);
+                }
+                break;
+            case LlmPluginIPCMessageType.Initialize:
+                ClearHistory();
+                InitLlama();
+                break;
+            case LlmPluginIPCMessageType.Setting:
+                CommonPluginSetting setting = (CommonPluginSetting)BitConverter.ToInt32(data, 4);
+                string accs = Encoding.UTF8.GetString(data, 8, data.Length - 8);
+                HandleSetting(setting, accs);
+                break;
         }
         return Tuple.Create(false, new byte[1]);
+    }
+
+    void HandleSetting(CommonPluginSetting setting, string accs)
+    {
+        switch (setting)
+        {
+            case CommonPluginSetting.AcceleratiorPriority:
+                List<Accelerator> apList = new List<Accelerator>();
+                foreach (string ac in accs.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {   
+                    if (Enum.TryParse(ac, out Accelerator aEnum))
+                    {
+                        apList.Add(aEnum);
+                    }
+                }
+                acceleratorPriority = apList.ToArray();
+
+                break;
+            case CommonPluginSetting.ModelPath:
+                llmModel = new LlmModel() { Url = @"https://huggingface.co", Name = Path.GetFileName(accs), Filename = accs };
+                break;
+        }
     }
 
     Task? taskLLM = null;
@@ -146,7 +167,8 @@ class LLmaChatProcessPlugin
 
         try
         {
-            llamaHandle = NativeLibrary.Load(config.Accelerators[config.SelectedAccelerator].Library);
+            // Todo: go through priority list properly.
+            llamaHandle = NativeLibrary.Load(Path.Combine(AppContext.BaseDirectory, llmAccelerators[acceleratorPriority[0]].Library));
         }
         catch (Exception ex)
         {
@@ -155,7 +177,7 @@ class LLmaChatProcessPlugin
             llamaHandle = 0;
         }
 
-        string? modelFile = config.SelectedModel >= 0 ? config.Models[config.SelectedModel].Filename : null;
+        string? modelFile = llmModel.Filename;
         if (modelFile == null || !File.Exists(modelFile) || llamaHandle == 0)
         {
             return;
@@ -257,7 +279,7 @@ class LLmaChatProcessPlugin
     internal bool modelReady;
     private bool running;
     private SessionState sessionCurrentState;
-
+    
     internal static LLmaChatProcessPlugin ChatInstance { get => chatInstance; set => chatInstance = value; }
 
     public void UserInput(string text)
@@ -271,9 +293,9 @@ class LLmaChatProcessPlugin
         todoList.Clear();
         stopAnswering = true;
         chatHistory.Messages.Clear();
-        chatHistory.AddMessage(LLama.Common.AuthorRole.System, config.SystemRoles[config.SelectedLanguage]);
-        chatHistory.AddMessage(LLama.Common.AuthorRole.User, config.ChatMessages[config.SelectedLanguage][0]);
-        chatHistory.AddMessage(LLama.Common.AuthorRole.Assistant, config.ChatMessages[config.SelectedLanguage][1]);
+        chatHistory.AddMessage(LLama.Common.AuthorRole.System, config.SystemRole);
+        chatHistory.AddMessage(LLama.Common.AuthorRole.User, config.ChatHistory[config.SelectedLanguage][0]);
+        chatHistory.AddMessage(LLama.Common.AuthorRole.Assistant, config.ChatHistory[config.SelectedLanguage][1]);
 
         if (session != null && sessionInitialState != null)
         {

@@ -1,15 +1,18 @@
-﻿using LatokoneAI.Common.Audio;
+﻿using LatokoneAI.Common;
+using LatokoneAI.Common.Audio;
 using LatokoneAI.Common.Interfaces;
 using LatokoneAI.Common.WindowsRegistry;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
+using System.Text;
 using Whisper.net;
 using Whisper.net.Ggml;
 using Whisper.net.LibraryLoader;
+using static LatokoneAI.Common.AcceleratorTypes;
 
 namespace WhisperProcessPlugin
 {
-    public class WhisperSTTPlugin : ISpeechToText
+    public class WhisperSTTPlugin
     {
         tiesky.com.ISharm sm = null;
 
@@ -81,9 +84,6 @@ namespace WhisperProcessPlugin
 
             realTimeResampler.Reset(16000, sampleRate);
 
-            InitWhisper();
-            InitCapture();
-
             if (sm == null)
             {
                 sm = new tiesky.com.SharmNpc(ipcID, tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler, externalProcessing: false);
@@ -121,9 +121,40 @@ namespace WhisperProcessPlugin
 
                     AudioReceived(buffer, count);
                     break;
+                case SttPluginIPCMessageType.Initialize:
+                    InitWhisper();
+                    InitCapture();
+                    break;
+                case SttPluginIPCMessageType.Setting:
+                    CommonPluginSetting setting = (CommonPluginSetting)BitConverter.ToInt32(data, 4);
+                    string accs = Encoding.UTF8.GetString(data, 8, data.Length - 8);
+                    HandleSetting(setting, accs);
+                    break;
             }
 
             return Tuple.Create(false, new byte[0]);
+        }
+
+        void HandleSetting(CommonPluginSetting setting, string accs)
+        {
+            switch (setting)
+            {
+                case CommonPluginSetting.AcceleratiorPriority:
+                    List<Accelerator> apList = new List<Accelerator>();
+                    foreach (string ac in accs.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (Enum.TryParse(ac, out Accelerator aEnum))
+                        {
+                            apList.Add(aEnum);
+                        }
+                    }
+                    acceleratorPriority = apList.ToArray();
+
+                    break;
+                case CommonPluginSetting.ModelPath:
+                    // whisperModel = new WhisperModel() { Ggml = GgmlType.Base, Name = "Base", Filename = Path.Combine(dir, "ggml-base.bin") };
+                    break;
+            }
         }
 
         public async void InitWhisper()
@@ -220,13 +251,6 @@ namespace WhisperProcessPlugin
             while (!stopWork)
             {
                 workAvailable.WaitOne();
-                /*
-                if (sampleRate != Global.Buzz.SelectedAudioDriverSampleRate)
-                {
-                    sampleRate = Global.Buzz.SelectedAudioDriverSampleRate;
-                    realTimeResampler.Reset(16000, sampleRate);
-                }
-                */
 
                 while (audioWorkList.Count > 0 && !skip)
                 {
@@ -251,7 +275,6 @@ namespace WhisperProcessPlugin
                             realTimeResampler.FillBuffer(inputBuffer, inputBuffer.Length / 2);
                             float[] outputBuffer = new float[n];
                             bool ok = realTimeResampler.GetSamples(outputBuffer, 0, outputBuffer.Length / 2);
-
 
                             // Wait until silence ends and then start to copy to buffer? Save atleast 5 seconds and then wait until there is silence?
                             if (ok)
@@ -301,23 +324,6 @@ namespace WhisperProcessPlugin
                                         i += 2;
                                     }
                                 }
-
-
-                                /*
-                                for (int i = 0; i < n;)
-								{
-									// Conver to mono
-									bufferForWhisper[outputBufferFillIndex] = (outputBuffer[i] + outputBuffer[i + 1]) / 2;
-
-									outputBufferFillIndex++;
-									if (outputBufferFillIndex >= bufferForWhisper.Length)
-									{
-										processor.Process(bufferForWhisper);
-                                        outputBufferFillIndex = 0;
-									}
-									i += 2;
-								}
-								*/
                             }
                         }
                     }
@@ -429,6 +435,9 @@ namespace WhisperProcessPlugin
         }
 
         private bool translate = false;
+        private Accelerator[] acceleratorPriority;
+        private WhisperModel whisperModel;
+
         public bool Translate { get => translate; }
     }
 

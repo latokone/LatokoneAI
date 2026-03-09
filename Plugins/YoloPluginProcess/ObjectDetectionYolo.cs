@@ -16,8 +16,6 @@ public class ObjectDetection
 
     static void Main(string[] args)
     {
-        int sampleRate = 44100;
-        int modelIndex = 0;
         string ipcID = "ObjectDetectionPlugin";
 
         IConfiguration config = new ConfigurationBuilder()
@@ -35,7 +33,6 @@ public class ObjectDetection
         {
             sm = new tiesky.com.SharmNpc(ipcID, tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler, externalProcessing: false);
         }
-
         while (true)
         {
             Thread.Sleep(100);
@@ -73,8 +70,8 @@ public class ObjectDetection
 
     public void Run()
     {
-        var assemblyPath = Path.GetDirectoryName(AppContext.BaseDirectory);
-        var fullPath = Path.Combine(assemblyPath, "Models//Yolo//yolov11s.onnx");
+        var assemblyPath = AppContext.BaseDirectory;
+        var fullPath = Path.Combine(assemblyPath, @"Models\Yolo\yolov11s.onnx");
 
         // Fire it up! Create an instance of YoloDotNet and reuse it across your app's lifetime.
         // Prefer the 'using' pattern for automatic cleanup if you're done after a single run.

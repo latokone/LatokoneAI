@@ -303,5 +303,11 @@ namespace KokoroProcessPlugin
                 sm.RemoteRequestWithoutResponse(IPCMessage.CreateMessage((int)TtsPluginIPCMessageType.AudioOutputAvailable, new float[40000], 40000));
             }
         }
+
+        public void InitializeAndRun()
+        {
+            Init();
+            Start();
+        }
     }
 }
