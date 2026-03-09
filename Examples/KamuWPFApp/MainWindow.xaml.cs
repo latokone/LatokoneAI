@@ -17,13 +17,13 @@ namespace WPFExample
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        LatokoneAI.Engine.Engine kamu;
+        LatokoneAI.Engine.Engine latokoneAI;
         private ISpeechToText sttPlugin;
         private ILlmPlugin llmPlugin;
         private ITextToSpeech ttsPlugin;
         private IObjectDetection objectDetectionPlugin;
 
-        internal LatokoneAI.Engine.Engine Kamu { get => kamu; set => kamu = value; }
+        internal LatokoneAI.Engine.Engine Kamu { get => latokoneAI; set => latokoneAI = value; }
 
         UsbCamera camera;
         UsbCamera Camera { get => camera; }
@@ -45,18 +45,25 @@ namespace WPFExample
 
             visualizerOut.SetBlueTheme();
 
-            kamu = new LatokoneAI.Engine.Engine();
-            kamu.AudioEngine.CreateWasapiOut();
+            latokoneAI = new LatokoneAI.Engine.Engine();
+            latokoneAI.AudioEngine.CreateWasapiOut();
 
-            sttPlugin = kamu.CreateSpeechToTextPlugin(@"..\..\..\..\..\Plugins\WhisperProcessPlugin\bin\Debug\net10.0\WhisperProcessPlugin.exe", "WhisperPlugin", 0, kamu.AudioEngine.SampleRateIn, [Accelerator.Vulkan, Accelerator.Cpu]);
-            llmPlugin = kamu.CreateLLMPlugin(@"..\..\..\..\..\Plugins\LlamaChatProcessPlugin\bin\Debug\net10.0\LlamaChatProcessPlugin.exe", "LlamaPlugin", [Accelerator.Cpu]);
-            ttsPlugin = kamu.CreateTextToSpeechPlugin(@"D:\Projects\source\Kamu\Plugins\KokoroProcessPlugin\bin\Debug\net10.0\KokoroProcessPlugin.exe", "KokoroPlugin", 0, kamu.AudioEngine.SampleRate, [Accelerator.Cpu]);
-            objectDetectionPlugin = kamu.CreateVisualPlugin(@"..\..\..\..\..\Plugins\YoloPluginProcess\bin\Debug\net10.0\YoloProcessPlugin.exe", "YoloPlugin", [Accelerator.Cpu]);
+            sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 0, latokoneAI.AudioEngine.SampleRateIn);
+            sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]);
+            sttPlugin.InitializeAndRun();
 
-            ttsPlugin.Init();
-            ttsPlugin.Start();
+            llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+            llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
+                WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
+            llmPlugin.InitializeAndRun();
 
-            kamu.AudioEngine.Play();
+            ttsPlugin = latokoneAI.CreateTextToSpeechPlugin(@"..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.exe", "KokoroPlugin", 0, latokoneAI.AudioEngine.SampleRate);
+            ttsPlugin.InitializeAndRun();
+
+            objectDetectionPlugin = latokoneAI.CreateVisualPlugin(@"..\..\Plugins\YoloProcessPlugin\YoloProcessPlugin.exe", "YoloPlugin");
+            objectDetectionPlugin.InitializeAndRun();
+
+            latokoneAI.AudioEngine.Play();
 
             Loaded += (s, e) =>
             {
@@ -76,12 +83,12 @@ namespace WPFExample
 
             this.Closed += (s, e) =>
             {
-                kamu.Dispose();
+                latokoneAI.Dispose();
                 camera?.Release();
             };
 
-            kamu.AudioReceived += Kamu_AudioReceived;
-            kamu.AudioOutputted += Kamu_AudioOutputted;
+            latokoneAI.AudioReceived += Kamu_AudioReceived;
+            latokoneAI.AudioOutputted += Kamu_AudioOutputted;
 
             string imaPath = "D:\\Projects\\source\\Kamu\\TestData\\result2.jpg";
             BitmapImage src = new BitmapImage();

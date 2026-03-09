@@ -1,11 +1,17 @@
 ﻿
+using LatokoneAI.Common.Interfaces;
 using static LatokoneAI.Common.AcceleratorTypes;
-
 
 Console.WriteLine("Getting things ready. This might take a while...");
 
-var kamu = new LatokoneAI.Engine.Engine();
-var llmPlugin = kamu.CreateLLMPlugin(@"..\..\..\..\..\Plugins\LlamaChatProcessPlugin\bin\Debug\net10.0\LlamaChatProcessPlugin.exe", "LlamaPlugin", [Accelerator.Cpu]);
+var latokoneAI = new LatokoneAI.Engine.Engine();
+
+// In your real world app you would output all to one folder structure
+var llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+llmPlugin.
+    WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
+    WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
+llmPlugin.InitializeAndRun();
 
 llmPlugin.ResponseReceived += ChatLlm_ResponseReceived;
 
@@ -18,12 +24,12 @@ void ChatLlm_ResponseReceived(string text)
 }
 
 while (true)
-{
-    Console.ForegroundColor = ConsoleColor.Yellow;
+{   
     string input = Console.ReadLine();
     if (input.Equals("exit", StringComparison.OrdinalIgnoreCase))
         break;
 
+    Console.ForegroundColor = ConsoleColor.Yellow;
     llmPlugin.UserInput(input);
 }
 

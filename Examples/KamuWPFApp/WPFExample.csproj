@@ -8,21 +8,15 @@
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>
 	  <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0\Examples\$(MSBuildProjectName)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\net10.0\Examples\$(MSBuildProjectName)\obj</IntermediateOutputPath>
   </PropertyGroup>
 
 	<PropertyGroup>
 		<StartupObject>WPFExample.App</StartupObject>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Common\MainWindowViewModel.cs" />
-    <Compile Remove="KamuAI.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Common\FftSharp\FftSharp.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
@@ -33,9 +27,5 @@
     <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
     <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(SolutionDir)3rdPartyUpdated\*.*&quot; &quot;$(SolutionDir)\Kamu&quot;" />
-  </Target>
 
 </Project>

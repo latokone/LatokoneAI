@@ -15,5 +15,4 @@
     <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
   </ItemGroup>
 
-
 </Project>
