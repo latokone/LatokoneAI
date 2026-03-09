@@ -5,12 +5,9 @@
         public int SelectedModel { get; set; }
         public int SelectedAccelerator { get; set; }
 
-        public List<LlmModel> Models { get; set; }
-        public List<LlmAccelerator> Accelerators { get; set; }
+        public string SystemRole { get; set; }
 
-        public string[] SystemRoles { get; set; }
-
-        public string[][] ChatMessages { get; set; }
+        public string[][] ChatHistory { get; set; }
 
         public List<string[]> AntiPromptLists { get; set; }
 

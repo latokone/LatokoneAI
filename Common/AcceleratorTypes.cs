@@ -7,7 +7,7 @@
             Cpu,
             Cuda,
             Cuda12,
-            Vulkan,
+            Vulcan,
             CoreML,
             OpenVino,
             CpuNoAvx
