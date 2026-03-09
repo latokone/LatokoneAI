@@ -43,7 +43,7 @@ LatokoneAI provides a unified API for running and chaining AI models on‑device
 ```
 git clone https://github.com/latokone/LatokoneAI.git
 ```
-### Open the solution:
+### Build:
 ```
 dotnet build
 ```
@@ -51,6 +51,8 @@ dotnet build
 ## 🖥️ Example: Using LatokoneAI with ConsoleLLM
 Below is a minimal example showing how to run an LLM locally using LatokoneAI’s orchestration layer.
 This example assumes you have a Console‑style project referencing the LatokoneAI engine.
+
+Note that you need to download specific AI Models to run the examples.
 ```
 // Create engine instance
 var latokoneAI = new LatokoneAI.Engine.Engine();
