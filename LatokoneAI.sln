@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGeneration", "Plugins\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleLLM", "Examples\ConsoleLLM\ConsoleLLM.csproj", "{58F5BBBC-DD4E-D437-47ED-6710A62701DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleLLMDiscussion", "Examples\ConsoleLLMDiscussion\ConsoleLLMDiscussion.csproj", "{32FF31C9-1DEF-E464-7E2C-60529833D431}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,6 +117,14 @@ Global
 		{58F5BBBC-DD4E-D437-47ED-6710A62701DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{58F5BBBC-DD4E-D437-47ED-6710A62701DC}.Release|x64.ActiveCfg = Release|Any CPU
 		{58F5BBBC-DD4E-D437-47ED-6710A62701DC}.Release|x64.Build.0 = Release|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Debug|x64.Build.0 = Debug|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Release|x64.ActiveCfg = Release|Any CPU
+		{32FF31C9-1DEF-E464-7E2C-60529833D431}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +138,7 @@ Global
 		{E74529DD-9425-1BD1-8F0E-7E7C3E4A0DD6} = {0E6690F3-41AE-484C-AA29-9462DB7236E6}
 		{7981C170-1FA9-4CFA-BEED-4721798D279D} = {26D7BC72-F124-4452-AEB3-9B4C0860BF76}
 		{58F5BBBC-DD4E-D437-47ED-6710A62701DC} = {0E6690F3-41AE-484C-AA29-9462DB7236E6}
+		{32FF31C9-1DEF-E464-7E2C-60529833D431} = {0E6690F3-41AE-484C-AA29-9462DB7236E6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3D985AC7-7B49-4AC8-B538-94242E6DDB13}
