@@ -25,6 +25,7 @@ bld/
 
 build/
 
+.vs/
 
 # .NET Core
 project.lock.json
