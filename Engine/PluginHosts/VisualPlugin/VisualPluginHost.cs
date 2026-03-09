@@ -12,16 +12,13 @@ namespace LatokoneAI.Engine.PluginHosts.VisualPlugin
         public event Action<bool> Disconnected;
 
         ObjectDetectionPluginProcess odPluginProcess;
-        public ObjectDetectionPluginProcess LoadPlugin(string path, Engine kamu, string ipcID, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ObjectDetectionPluginProcess LoadPlugin(string path, Engine kamu, string ipcID)
         {
             try
             {
-                string acceleratorPriority = "";
-                acceleratorPriority = string.Join(",", accelerators.Select(acc => acc.ToString()));
-
                 ProcessStartInfo processInfo = new ProcessStartInfo(path);
                 processInfo.CreateNoWindow = true;
-                processInfo.Arguments = $"--IpcID {ipcID} --AcceleratiorPriority {acceleratorPriority}";
+                processInfo.Arguments = $"--IpcID {ipcID}";
 
                 childProcess = Process.Start(processInfo);
                 childProcess.EnableRaisingEvents = true;
@@ -102,8 +99,6 @@ namespace LatokoneAI.Engine.PluginHosts.VisualPlugin
 
             while (!connected)
                 Thread.Sleep(100);
-
-            Run();
         }
 
         private Tuple<bool, byte[]> RemoteCall(byte[] data)
@@ -123,7 +118,7 @@ namespace LatokoneAI.Engine.PluginHosts.VisualPlugin
             return Tuple.Create(false, new byte[0]);
         }
 
-        public void Run()
+        public void InitializeAndRun()
         {
             sm.RemoteRequestWithoutResponse(IPCMessage.CreateMessage((int)ObjectDetectionPluginIPCMessageType.Run));
         }

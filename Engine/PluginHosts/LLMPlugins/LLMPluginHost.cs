@@ -2,27 +2,24 @@
 using LatokoneAI.Common.Interfaces;
 using System.Diagnostics;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace LatokoneAI.Engine.PluginHosts.LLMPlugins
 {
     internal class LLMPluginHost
     {
-
         internal Process? childProcess;
         public event Action<bool> Connected;
         public event Action<bool> Disconnected;
 
         LlmPluginProcess llmPluginProcess;
-        public ILlmPlugin LoadPlugin(string path, Engine kamu, string ipcID, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ILlmPlugin LoadPlugin(string path, Engine kamu, string ipcID)
         {
             try
             {
-                string acceleratorPriority = "";
-                acceleratorPriority = string.Join(",", accelerators.Select(acc => acc.ToString()));
-
                 ProcessStartInfo processInfo = new ProcessStartInfo(path);
                 processInfo.CreateNoWindow = true;
-                processInfo.Arguments = $"--IpcID {ipcID} --AcceleratiorPriority {acceleratorPriority}";
+                processInfo.Arguments = $"--IpcID {ipcID}";
 
                 childProcess = Process.Start(processInfo);
                 childProcess.EnableRaisingEvents = true;
@@ -140,14 +137,42 @@ namespace LatokoneAI.Engine.PluginHosts.LLMPlugins
             sm.RemoteRequestWithoutResponse(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.UserInput, input));
         }
 
-        public void Dispose()
+        public void WithConfig(LlmConfig config)
         {
+            XmlSerializer xmlSerializer = new XmlSerializer(config.GetType());
 
+            using (StringWriter textWriter = new StringWriter())
+            {
+                xmlSerializer.Serialize(textWriter, config);
+                sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Config, textWriter.ToString()));
+            }
         }
 
-        public void Initialize()
+        public void InitializeAndRun()
         {
-            throw new NotImplementedException();
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Initialize));
+        }
+
+        public ILlmPlugin WithSetting(AcceleratorTypes.Accelerator[] accelerators)
+        {
+            var accs = string.Join(",", accelerators);
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.AcceleratiorPriority, accs));
+            return this;
+        }
+
+        public ILlmPlugin WithSetting(CommonPluginSetting setting, string value)
+        {   
+            switch (setting)
+            {
+                case CommonPluginSetting.ModelPath:
+                    sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.ModelPath, value));
+                    break;
+            }
+            return this;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

@@ -12,16 +12,13 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
         public event Action<bool> Disconnected;
 
         AudioInPluginProcess ttsPluginProcess;
-        public ISpeechToText LoadPlugin(string path, Engine kamu, string ipcID, int modelIndex, int sampleRate, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ISpeechToText LoadPlugin(string path, Engine kamu, string ipcID, int modelIndex, int sampleRate)
         {
             try
             {   
-                string acceleratorPriority = "";
-                acceleratorPriority = string.Join(",", accelerators.Select(acc => acc.ToString()));
-
                 ProcessStartInfo processInfo = new ProcessStartInfo(path);
                 processInfo.CreateNoWindow = true;
-                processInfo.Arguments = $"--IpcID {ipcID} --modelIndex {modelIndex} --SampleRate {sampleRate} --AcceleratiorPriority {acceleratorPriority}";
+                processInfo.Arguments = $"--IpcID {ipcID} --modelIndex {modelIndex} --SampleRate {sampleRate}";
 
                 childProcess = Process.Start(processInfo);
                 childProcess.EnableRaisingEvents = true;
@@ -129,11 +126,33 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
             return Tuple.Create(false, new byte[0]);
         }
 
-
         public event Action<string> TextRecognized;
         public void Dispose()
         {
             host.AudioReceived -= Host_AudioReceived;
+        }
+
+        public ISpeechToText WithSetting(AcceleratorTypes.Accelerator[] accelerators)
+        {
+            var accs = string.Join(",", accelerators);
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.AcceleratiorPriority, accs));
+            return this;
+        }
+
+        public ISpeechToText WithSetting(CommonPluginSetting setting, string value)
+        {
+            switch (setting)
+            {
+                case CommonPluginSetting.ModelPath:
+                    sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.ModelPath, value));
+                    break;
+            }
+            return this;
+        }
+
+        public void InitializeAndRun()
+        {
+            sm.RemoteRequestWithoutResponse(IPCMessage.CreateMessage((int)SttPluginIPCMessageType.Initialize));
         }
     }
 }

@@ -11,16 +11,13 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
         public event Action<bool> Disconnected;
 
         AudioOutPluginProcess ttsPluginProcess;
-        public ITextToSpeech LoadPlugin(string path, Engine kamu, string ipcID, int modelIndex, int sampleRate, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ITextToSpeech LoadPlugin(string path, Engine kamu, string ipcID, int modelIndex, int sampleRate)
         {
             try
             {
-                string acceleratorPriority = "";
-                acceleratorPriority = string.Join(",", accelerators.Select(acc => acc.ToString()));
-
                 ProcessStartInfo processInfo = new ProcessStartInfo(path);
                 processInfo.CreateNoWindow = true;
-                processInfo.Arguments = $"--IpcID {ipcID} --modelIndex {modelIndex} --SampleRate {sampleRate} --AcceleratiorPriority {acceleratorPriority}";
+                processInfo.Arguments = $"--IpcID {ipcID} --modelIndex {modelIndex} --SampleRate {sampleRate}";
 
                 childProcess = Process.Start(processInfo);
                 childProcess.EnableRaisingEvents = true;
@@ -157,6 +154,12 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
         public void StopTalking()
         {
             sm.RemoteRequest(IPCMessage.CreateMessage((int)TtsPluginIPCMessageType.StopTalking, ""));
+        }
+
+        public void InitializeAndRun()
+        {
+            Init();
+            Start();
         }
     }
 }
