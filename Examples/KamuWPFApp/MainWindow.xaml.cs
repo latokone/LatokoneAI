@@ -89,14 +89,6 @@ namespace WPFExample
 
             latokoneAI.AudioReceived += Kamu_AudioReceived;
             latokoneAI.AudioOutputted += Kamu_AudioOutputted;
-
-            string imaPath = "D:\\Projects\\source\\Kamu\\TestData\\result2.jpg";
-            BitmapImage src = new BitmapImage();
-            src.BeginInit();
-            src.UriSource = new Uri(imaPath, UriKind.Absolute);
-            src.CacheOption = BitmapCacheOption.OnLoad;
-            src.EndInit();
-            ObjectDetectionImage = src;
         }
 
         bool cameraCaptureProcessed = true;

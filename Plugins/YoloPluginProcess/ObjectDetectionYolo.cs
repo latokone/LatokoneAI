@@ -104,20 +104,6 @@ public class ObjectDetection
                                                                                              // Check the benchmarks for examples and guidance: 
                                                                                              // https://github.com/NickSwardh/YoloDotNet/tree/master/test/YoloDotNet.Benchmarks
         });
-
-        // Display model metadata
-        Console.WriteLine($"Model Type: {yolo.ModelInfo}");
-
-        // Load image using SkiaSharp
-        using var image = SKBitmap.Decode("D:\\Projects\\source\\Kamu\\TestData\\od_test.jpg");
-
-        // Run object detection
-        var results = yolo.RunObjectDetection(image, confidence: 0.20, iou: 0.7);
-
-        image.Draw(results);         // Draw boxes and labels
-        image.Save("D:\\Projects\\source\\Kamu\\TestData\\result.jpg");    // Save to file – boom, done!
-
-        using var test = SKBitmap.Decode(image.Encode(SKEncodedImageFormat.Png, 90));
     }
 
     public void Dispose()
