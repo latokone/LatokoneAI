@@ -101,5 +101,15 @@ while (true)
 Contributions are very welcome!
 * Feel free to open issues, submit pull requests, or propose new plugins.
 
+Contributions needed especially in these areas:
+- [ ] More plugins to cover wider range of use cases
+- [ ] Improve pluging handling, add missing interface calls
+- [ ] Ensure most of the code works on Windows and Linux (better separation of platform specific code, like audio handling)
+- [ ] Documentation
+- [ ] More examples
+- [ ] Benchmarking
+
+Let's make this a good one!
+
 ## 📄 License
 This project is licensed under the MIT License.
