@@ -5,6 +5,8 @@
         public void Init();
         public void Start();
 
+        public void InitializeAndRun();
+
         public void FillBuffer(float[] buffer, int offset, int count);
 
         public void StopTalking();

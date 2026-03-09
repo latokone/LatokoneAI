@@ -60,6 +60,16 @@ namespace LatokoneAI.Common.Interfaces
             return message;
         }
 
+        public static byte[] CreateMessage(int type, int type2, string data)
+        {
+            byte[] payload = Encoding.UTF8.GetBytes(data);
+            byte[] message = new byte[8 + payload.Length];
+            BitConverter.GetBytes(type).CopyTo(message, 0);
+            BitConverter.GetBytes(type2).CopyTo(message, 4);
+            payload.CopyTo(message, 8);
+            return message;
+        }
+
         public static float[] GetAudioBuffer(byte[] data)
         {
             float[] buffer = new float[(data.Length - 8) / 4];

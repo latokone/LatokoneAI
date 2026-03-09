@@ -4,9 +4,8 @@ namespace LatokoneAI.Common.Interfaces
 {
     public interface IObjectDetection : IDisposable
     {
-        void Run();
-
         SKBitmap DoDetect(SKBitmap sourceImage);
+        void InitializeAndRun();
     }
 
     public enum ObjectDetectionPluginIPCMessageType
