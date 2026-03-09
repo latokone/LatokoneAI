@@ -5,8 +5,8 @@ LatokoneAI provides a unified API for running and chaining AI models on‑device
 
 ## 🚀 Features
 🧠 Multi‑model orchestration
-* Run multiple AI models (LLMs, vision, audio, embeddings) in coordinated pipelines.
-* Stream data between models with low latency.
+* Run multiple AI models (LLMs, vision, audio, object detection and classification) in coordinated pipelines.
+* Stream data between models with low latency using IPC engine based on memory-mapped files and on NamedPipes.
 
 ### ⚙️ Runtime abstraction
 * Unified interface over different inference backends.
