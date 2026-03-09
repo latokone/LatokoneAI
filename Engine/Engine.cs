@@ -24,52 +24,6 @@ namespace LatokoneAI.Engine
 
         internal ILlmPlugin? chatOllama;
 
-        LlmConfig config = new LlmConfig()
-        {
-            Models = new List<LlmModel>()
-            {
-                new() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-IQ2_M.gguf", Name = "Ahma-7B-Instruct.Q6_K", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-7B-Instruct.Q6_K.gguf") },
-                new() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Ahma-7B.Q4_K_S", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-7B.Q4_K_S.gguf") },
-                new() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Ahma-3B.Q6_K", Filename = Path.Combine(LlmConfig.ModelPath, "Ahma-3B.Q6_K.gguf") },
-                new() { Url = @"https://huggingface.co/bartowski/Phi-3.5-mini-instruct_Uncensored-GGUF/resolve/main/Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf", Name = "Phi-3.5-mini-instruct_Uncensored-Q6_K_L", Filename = "D:\\Downloads\\Models\\Phi-3.5-mini-instruct_Uncensored-Q6_K_L.gguf" },
-
-            },
-            Accelerators = new List<LlmAccelerator>()
-            {
-                new() { Name = "AVX2", Library = "runtimes\\llama\\win-x64\\native\\avx2\\llama.dll" },
-                new() { Name = "Vulcan", Library = "runtimes\\llama\\win-x64\\native\\vulcan\\llama.dll" }
-            },
-            SelectedModel = 3,
-            SelectedAccelerator = 0,
-
-            SelectedLanguage = 0, // English
-
-            SystemRoles = new string[]
-            {
-                "Transcript of a dialog, where the User interacts with an Assistant named ReBuzz. ReBuzz is helpful, kind, honest, good at writing, and never fails to answer the User's requests immediately and with precision.",
-                "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti mutta lyhyesti. Vastauksesi eivät saa sisältää mitään haitallista, epäeettistä, rasistista, seksististä, vaarallista tai laitonta sisältöä. Jos kysymyksessä ei ole mitään järkeä tai se ei ole asiasisällöltään johdonmukainen, selitä miksi sen sijaan, että vastaisit jotain väärin. Jos et tiedä vastausta kysymykseen, älä kerro väärää tietoa.",
-            },
-
-            ChatMessages = new string[][]
-            {
-                new string[] {
-                "Hi Assistant.",
-                "Hi. How can I assist you today?",
-                },
-                new string[] {
-                "Hei avustaja.",
-                "Hei. Miten voin auttaa sinua tänään?",
-                },
-            },
-
-            AntiPromptLists = new List<string[]>()
-            {
-            new string[] { "User" },
-            new string[] { "</s>", "[/Inst]", "User:", "Käyttäjä:" }
-            },
-        };
-
-
         AppDomain currentDomain;
         public Engine()
         {
@@ -81,34 +35,34 @@ namespace LatokoneAI.Engine
             Init();
         }
 
-        public ISpeechToText CreateSpeechToTextPlugin(string pluginPath, string ipcID, int deviceIndex,  int sampleRate, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ISpeechToText CreateSpeechToTextPlugin(string pluginPath, string ipcID, int deviceIndex,  int sampleRate)
         {
             var host = new AudioInPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, deviceIndex, sampleRate, accelerators);
+            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, deviceIndex, sampleRate);
             speechToTextPlugins.Add(pluginInstance);
             return pluginInstance;
         }
 
-        public ILlmPlugin CreateLLMPlugin(string pluginPath, string ipcID, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ILlmPlugin CreateLLMPlugin(string pluginPath, string ipcID)
         {
             var host = new LLMPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, accelerators);
+            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
             llmPlugins.Add(pluginInstance);
             return pluginInstance;
         }
 
-        public ITextToSpeech CreateTextToSpeechPlugin(string pluginPath, string ipcID, int modelIndex, int sampleRate, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public ITextToSpeech CreateTextToSpeechPlugin(string pluginPath, string ipcID, int modelIndex, int sampleRate)
         {
             var host = new AudioOutPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, modelIndex, sampleRate, accelerators);
+            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, modelIndex, sampleRate);
             textToSpeechPlugins.Add(pluginInstance);
             return pluginInstance;
         }
 
-        public IObjectDetection CreateVisualPlugin(string pluginPath, string ipcID, IEnumerable<AcceleratorTypes.Accelerator> accelerators)
+        public IObjectDetection CreateVisualPlugin(string pluginPath, string ipcID)
         {
             var host = new VisualPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, accelerators);
+            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
             visualPlugins.Add(pluginInstance);
             return pluginInstance;
         }
