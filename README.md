@@ -5,8 +5,8 @@ LatokoneAI provides a unified API for running and chaining AI models on‑device
 
 ## 🚀 Features
 🧠 Multi‑model orchestration
-* Run multiple AI models (LLMs, vision, audio, embeddings) in coordinated pipelines.
-* Stream data between models with low latency.
+* Run multiple AI models (LLMs, vision, audio, object detection and classification) in coordinated pipelines.
+* Stream data between models with low latency using IPC engine based on memory-mapped files and on NamedPipes.
 
 ### ⚙️ Runtime abstraction
 * Unified interface over different inference backends.
@@ -43,7 +43,7 @@ LatokoneAI provides a unified API for running and chaining AI models on‑device
 ```
 git clone https://github.com/latokone/LatokoneAI.git
 ```
-### Open the solution:
+### Build:
 ```
 dotnet build
 ```
@@ -51,6 +51,8 @@ dotnet build
 ## 🖥️ Example: Using LatokoneAI with ConsoleLLM
 Below is a minimal example showing how to run an LLM locally using LatokoneAI’s orchestration layer.
 This example assumes you have a Console‑style project referencing the LatokoneAI engine.
+
+Note that you need to download specific AI Models to run the examples.
 ```
 // Create engine instance
 var latokoneAI = new LatokoneAI.Engine.Engine();
@@ -98,6 +100,16 @@ while (true)
 ## 🤝 Contributing
 Contributions are very welcome!
 * Feel free to open issues, submit pull requests, or propose new plugins.
+
+Contributions needed especially in these areas:
+- [ ] More plugins to cover wider range of use cases
+- [ ] Improve pluging handling, add missing interface calls
+- [ ] Ensure most of the code works on Windows and Linux (better separation of platform specific code, like audio handling)
+- [ ] Documentation
+- [ ] More examples
+- [ ] Benchmarking
+
+Let's make this a good one!
 
 ## 📄 License
 This project is licensed under the MIT License.
