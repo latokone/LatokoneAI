@@ -92,6 +92,24 @@ while (true)
 }
 ```
 
+### Connectors
+
+To connect two models (output from plugin A is sent to input in plugin B) you can:
+
+```
+sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 1, latokoneAI.AudioEngine.SampleRateIn);
+llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+
+// Output from stt is automatically sent to llm...
+var connection = latokoneAI.ConnectPlugins(sttPlugin, llmPlugin);
+
+// ...but you can also use the connection event to interact with data.
+connection.DataAvailable += (e) =>
+{
+    string text = (string)e.Data;
+};
+```
+
 ## 🛠️ Roadmap
 * Multi‑GPU scheduling
 * Built‑in model downloader
