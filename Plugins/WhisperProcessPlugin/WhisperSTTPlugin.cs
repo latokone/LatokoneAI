@@ -38,7 +38,7 @@ namespace WhisperProcessPlugin
         public event Action ModelLoadingCompeleted;
         public event Action BufferMaxed;
 
-        int selectedModel = 2;
+        int selectedModel = 1;
         internal int SelectedModel { get => selectedModel; }
 
         static void Main(string[] args)
@@ -154,6 +154,9 @@ namespace WhisperProcessPlugin
                 case CommonPluginSetting.ModelPath:
                     // whisperModel = new WhisperModel() { Ggml = GgmlType.Base, Name = "Base", Filename = Path.Combine(dir, "ggml-base.bin") };
                     break;
+                case CommonPluginSetting.ModelBasePath:
+                    modelBasePath = accs;
+                    break;
             }
         }
 
@@ -165,7 +168,6 @@ namespace WhisperProcessPlugin
 
             Models = new List<WhisperModel>()
             {
-                new WhisperModel() { Ggml = GgmlType.Base, Name = "Base", Filename = Path.Combine(dir, "ggml-base.bin") },
                 new WhisperModel() { Ggml = GgmlType.Base, Name = "Base", Filename = Path.Combine(dir, "ggml-base.bin") },
                 new WhisperModel() { Ggml = GgmlType.BaseEn, Name = "Base.En", Filename = Path.Combine(dir, "ggml-base.en.bin") },
                 //new WhisperModel() { Ggml = GgmlType.Small, Name = "Small", Quantization = QuantizationType.Q8_0, Filename = Path.Combine(dir, "Q8_0", "ggml-small.bin") },
@@ -425,7 +427,7 @@ namespace WhisperProcessPlugin
         {
             get
             {
-                var defaultDir = Path.Combine(AppContext.BaseDirectory, "Models", "Whisper");
+                var defaultDir = modelBasePath != null ? modelBasePath : Path.Combine(AppContext.BaseDirectory, "Models", "Whisper");
                 return RegistryEx.Read("ModelPathWhisper", defaultDir, "Models");
             }
             internal set
@@ -437,6 +439,7 @@ namespace WhisperProcessPlugin
         private bool translate = false;
         private Accelerator[] acceleratorPriority;
         private WhisperModel whisperModel;
+        private string modelBasePath;
 
         public bool Translate { get => translate; }
     }

@@ -1,5 +1,6 @@
 ﻿
 using LatokoneAI.Common;
+using LatokoneAI.Common.Interfaces;
 using NAudio.SoundFont;
 using System.ComponentModel;
 using System.Threading.Channels;
@@ -36,12 +37,13 @@ Console.WriteLine("Getting things ready. This might take a while...");
 
 var latokoneAI = new LatokoneAI.Engine.Engine();
 var llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
-llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]);
+llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
 llmPlugin.WithConfig(config);
 llmPlugin.InitializeAndRun();
 
 var llmPlugin2 = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin2");
-llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]);
+llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
+    WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
 llmPlugin2.WithConfig(config);
 llmPlugin2.InitializeAndRun();
 

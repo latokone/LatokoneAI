@@ -2,7 +2,7 @@
 
 namespace LatokoneAI.Common.Interfaces
 {
-    public interface ISpeechToText
+    public interface ISpeechToText : ILatokonePlugin
     {
         public event Action<string> TextRecognized;
         public ISpeechToText WithSetting(Accelerator[] accelerators);

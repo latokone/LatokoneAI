@@ -26,7 +26,6 @@ namespace WPFExample
         internal LatokoneAI.Engine.Engine Kamu { get => latokoneAI; set => latokoneAI = value; }
 
         UsbCamera camera;
-        UsbCamera Camera { get => camera; }
 
         BitmapSource objectDetectionImage;
         public BitmapSource ObjectDetectionImage
@@ -48,27 +47,71 @@ namespace WPFExample
             latokoneAI = new LatokoneAI.Engine.Engine();
             latokoneAI.AudioEngine.CreateWasapiOut();
 
-            sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 0, latokoneAI.AudioEngine.SampleRateIn);
-            sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]);
+            // In this example, 'ggml-base.en.bin' needs to be placed in D:\Downloads\Models\Whisper
+            sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 1, latokoneAI.AudioEngine.SampleRateIn);
+            sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]).
+                WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Whisper");
             sttPlugin.InitializeAndRun();
 
+            // Use llamacpp runtime and Qwen model
             llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
             llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
                 WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
             llmPlugin.InitializeAndRun();
 
+            // In this example, 'kokoro.onnx' needs to be placed in D:\Downloads\Models\Kokoro\Models and Kokoro 'voices' folder needs to be copied to D:\Downloads\Models\Kokoro
             ttsPlugin = latokoneAI.CreateTextToSpeechPlugin(@"..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.exe", "KokoroPlugin", 0, latokoneAI.AudioEngine.SampleRate);
+            ttsPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Kokoro");
             ttsPlugin.InitializeAndRun();
 
+            // In this example, 'yolov11s.onnx' needs to be placed in D:\Downloads\Models\Yolo
             objectDetectionPlugin = latokoneAI.CreateVisualPlugin(@"..\..\Plugins\YoloProcessPlugin\YoloProcessPlugin.exe", "YoloPlugin");
+            objectDetectionPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Yolo");
             objectDetectionPlugin.InitializeAndRun();
 
             latokoneAI.AudioEngine.Play();
 
+            // Connect Speech-To-Text plguin to LLM
+            var connection = latokoneAI.ConnectPlugins(sttPlugin, llmPlugin);
+            // Connect LLM to Text-To-Speech
+            var connection2 = latokoneAI.ConnectPlugins(llmPlugin, ttsPlugin);
+            // Create detached connection to receive object detection results
+            var connection3 = latokoneAI.ConnectPlugins(objectDetectionPlugin, null);
+
+            connection.DataAvailable += (e) =>
+            {
+                if (((string)e.Data).Trim() == "[BLANK_AUDIO]")
+                {
+                    e.Handled = true;
+                    return;
+                }
+                Whisper_WhisperTextAdded((string)e.Data);
+            };
+
+            connection2.DataAvailable += (e) =>
+            {
+                ChatLlm_ResponseReceived((string)e.Data);
+            };
+
+            connection3.DataAvailable += (e) =>
+            {
+                Application.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    SKBitmap result = (SKBitmap)e.Data;
+                    if (result != null)
+                    {
+                        ImageSource imageSource = WPFExtensions.ToWriteableBitmap(result);
+
+                        ObjectDetectionImage = imageSource as BitmapSource;
+                        result?.Dispose();
+                    }
+
+                    cameraCaptureProcessed = true;
+                });
+            };
+
             Loaded += (s, e) =>
             {
-                sttPlugin.TextRecognized += Whisper_WhisperTextAdded;
-                llmPlugin.ResponseReceived += ChatLlm_ResponseReceived;
                 tbUserInput.KeyDown += TbUserInput_KeyDown;
 
                 StartCamera();
@@ -76,8 +119,6 @@ namespace WPFExample
 
             Unloaded += (s, e) =>
             {
-                sttPlugin.TextRecognized -= Whisper_WhisperTextAdded;
-                llmPlugin.ResponseReceived -= ChatLlm_ResponseReceived;
                 tbUserInput.KeyDown -= TbUserInput_KeyDown;
             };
 
@@ -87,13 +128,11 @@ namespace WPFExample
                 camera?.Release();
             };
 
-            latokoneAI.AudioReceived += Kamu_AudioReceived;
-            latokoneAI.AudioOutputted += Kamu_AudioOutputted;
+            latokoneAI.AudioReceived += Latokone_AudioReceived;
+            latokoneAI.AudioOutputted += Latokone_AudioOutputted;
         }
 
         bool cameraCaptureProcessed = true;
-        SKBitmap bitmap;
-        SKBitmap result;
         void StartCamera()
         {
             // check USB camera is available.
@@ -125,28 +164,9 @@ namespace WPFExample
 
                 Task.Run(() =>
                 {
-                    bitmap = CreateImage((byte[])bmpImg, format.Size.Width, format.Size.Height);
-                    result = objectDetectionPlugin.DoDetect(bitmap);
-
-                    Application.Current.Dispatcher.BeginInvoke(() =>
-                    {
-                        //using var skBitmap = WPFExtensions.ToSKBitmap(bmpImg);
-
-
-                        ImageSource imageSource = WPFExtensions.ToWriteableBitmap(result);
-
-
-                        if (result != null)
-                        {
-                            ObjectDetectionImage = imageSource as BitmapSource;
-                            bitmap?.Dispose();
-                            result?.Dispose();
-                            bitmap = null;
-                            result = null;
-                        }
-
-                        cameraCaptureProcessed = true;
-                    });
+                    SKBitmap bitmap = CreateImage((byte[])bmpImg, format.Size.Width, format.Size.Height);
+                    objectDetectionPlugin.DoDetect(bitmap);
+                    bitmap.Dispose();
                 });
 
             };
@@ -186,12 +206,12 @@ namespace WPFExample
             return bitmap;
         }
 
-        private void Kamu_AudioOutputted(float[] buffer, int length)
+        private void Latokone_AudioOutputted(float[] buffer, int length)
         {
             visualizerOut.FillAudioBuffer(buffer, length);
         }
 
-        private void Kamu_AudioReceived(float[] buffer, int length)
+        private void Latokone_AudioReceived(float[] buffer, int length)
         {
             visualizerIn.FillAudioBuffer(buffer, length);
         }
@@ -237,7 +257,6 @@ namespace WPFExample
                 txt = txt.Replace("[/INST]", "");
                 tbChat.Text += txt;
                 tbChat.ScrollToEnd();
-                ttsPlugin.AddPartOfASentence(txt);
             });
         }
 
@@ -281,7 +300,6 @@ namespace WPFExample
                 else if (command == controlWords[language][2])
                 {
                     listeningQuestion = true;
-                    // kamu.piperEngine.AddWork("Yes?");
                 }
                 else
                 {

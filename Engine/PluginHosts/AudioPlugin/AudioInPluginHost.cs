@@ -62,14 +62,17 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
 
     public class AudioInPluginProcess : ISpeechToText
     {
-        IKamuAI host;
+        ILatokoneAI host;
 
-        private IKamuAI kamuAI;
+        private ILatokoneAI kamuAI;
         tiesky.com.ISharm? sm = null;
 
-        public AudioInPluginProcess(IKamuAI host, string ipcID)
+        public string Name { get; set; }
+
+        public AudioInPluginProcess(ILatokoneAI host, string ipcID)
         {
             this.host = host;
+            Name = ipcID;
 
             if (sm != null)
             {
@@ -99,8 +102,6 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
 
             while (!connected)
                 Thread.Sleep(100);
-
-            host.AudioReceived += Host_AudioReceived;
         }
 
         private void Host_AudioReceived(float[] buffer, int count)
@@ -135,24 +136,21 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
         public ISpeechToText WithSetting(AcceleratorTypes.Accelerator[] accelerators)
         {
             var accs = string.Join(",", accelerators);
-            sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.AcceleratiorPriority, accs));
+            WithSetting(CommonPluginSetting.AcceleratiorPriority, accs);
             return this;
         }
 
         public ISpeechToText WithSetting(CommonPluginSetting setting, string value)
         {
-            switch (setting)
-            {
-                case CommonPluginSetting.ModelPath:
-                    sm.RemoteRequest(IPCMessage.CreateMessage((int)LlmPluginIPCMessageType.Setting, (int)CommonPluginSetting.ModelPath, value));
-                    break;
-            }
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)SttPluginIPCMessageType.Setting, (int)setting, value));
             return this;
         }
 
         public void InitializeAndRun()
         {
             sm.RemoteRequestWithoutResponse(IPCMessage.CreateMessage((int)SttPluginIPCMessageType.Initialize));
+
+            host.AudioReceived += Host_AudioReceived;
         }
     }
 }

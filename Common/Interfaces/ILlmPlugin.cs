@@ -2,7 +2,7 @@
 
 namespace LatokoneAI.Common.Interfaces
 {
-    public interface ILlmPlugin : IDisposable
+    public interface ILlmPlugin : ILatokonePlugin, IDisposable
     {
         public void InitializeAndRun();
         public void UserInput(string input);

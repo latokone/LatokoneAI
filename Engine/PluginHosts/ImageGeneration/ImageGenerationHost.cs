@@ -67,12 +67,12 @@ namespace LatokoneAI.Engine.PluginHosts.ImageGeneration
 
     public class ImageDetectionProcess : IImgGenPlugin
     {
-        IKamuAI host;
+        ILatokoneAI host;
 
-        private IKamuAI kamuAI;
+        private ILatokoneAI kamuAI;
         tiesky.com.ISharm? sm = null;
 
-        public ImageDetectionProcess(IKamuAI host, string ipcID)
+        public ImageDetectionProcess(ILatokoneAI host, string ipcID)
         {
             this.host = host;
 

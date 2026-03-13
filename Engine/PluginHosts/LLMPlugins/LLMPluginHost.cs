@@ -63,14 +63,17 @@ namespace LatokoneAI.Engine.PluginHosts.LLMPlugins
 
     public class LlmPluginProcess : ILlmPlugin, IDisposable
     {
-        private IKamuAI kamuAI;
+        private ILatokoneAI kamuAI;
         tiesky.com.ISharm? sm = null;
 
         public event Action<string> ResponseReceived;
 
-        public LlmPluginProcess(IKamuAI host, string ipcID)
+        public string Name { get; set; }
+
+        public LlmPluginProcess(ILatokoneAI host, string ipcID)
         {
             this.kamuAI = host;
+            Name = ipcID;
 
             if (sm != null)
             {

@@ -8,6 +8,7 @@ namespace LatokoneAI.Common.Interfaces
     public enum CommonPluginSetting
     {
         AcceleratiorPriority,
-        ModelPath
+        ModelPath,
+        ModelBasePath
     }
 }

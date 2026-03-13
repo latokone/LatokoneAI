@@ -61,14 +61,17 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
 
     public class AudioOutPluginProcess : ITextToSpeech
     {
-        IKamuAI host;
+        ILatokoneAI host;
 
-        private IKamuAI kamuAI;
+        private ILatokoneAI kamuAI;
         tiesky.com.ISharm? sm = null;
 
-        public AudioOutPluginProcess(IKamuAI host, string ipcID)
+        public string Name { get; set; }
+
+        public AudioOutPluginProcess(ILatokoneAI host, string ipcID)
         {
             this.host = host;
+            Name = ipcID;
 
             if (sm != null)
             {
@@ -160,6 +163,12 @@ namespace LatokoneAI.Engine.PluginHosts.AudioPlugin
         {
             Init();
             Start();
+        }
+
+        public ITextToSpeech WithSetting(CommonPluginSetting setting, string value)
+        {
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)TtsPluginIPCMessageType.Setting, (int)setting, value));
+            return this;
         }
     }
 }

@@ -62,14 +62,18 @@ namespace LatokoneAI.Engine.PluginHosts.VisualPlugin
 
     public class ObjectDetectionPluginProcess : IObjectDetection
     {
-        IKamuAI host;
+        ILatokoneAI host;
 
-        private IKamuAI kamuAI;
+        private ILatokoneAI kamuAI;
         tiesky.com.ISharm? sm = null;
 
-        public ObjectDetectionPluginProcess(IKamuAI host, string ipcID)
+        public event Action<object> ImageProcessed;
+
+        public string Name { get; }
+        public ObjectDetectionPluginProcess(ILatokoneAI host, string ipcID)
         {
             this.host = host;
+            Name = ipcID;
 
             if (sm != null)
             {
@@ -128,12 +132,22 @@ namespace LatokoneAI.Engine.PluginHosts.VisualPlugin
             // To improve performance, implement the plugin as part of main app to avoid expensive IPC memory copies, encoding/decoding, and serialization.
             // The plugin can send back detection results (e.g. bounding boxes, labels) instead of the whole image.
             var result = sm.RemoteRequest(IPCMessage.CreateMessage((int)ObjectDetectionPluginIPCMessageType.DoDetect, sourceImage.Encode(SKEncodedImageFormat.Png, 90).ToArray()));
-            return SKBitmap.Decode(result.Item2);
+
+            var bitmap = SKBitmap.Decode(result.Item2);
+            ImageProcessed?.Invoke(bitmap);
+
+            return bitmap;
         }
 
         public void Dispose()
         {
 
+        }
+
+        public IObjectDetection WithSetting(CommonPluginSetting setting, string value)
+        {
+            sm.RemoteRequest(IPCMessage.CreateMessage((int)ObjectDetectionPluginIPCMessageType.Setting, (int)setting, value));
+            return this;
         }
     }
 }

@@ -6,10 +6,12 @@ using LatokoneAI.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Text;
+using static LatokoneAI.Common.AcceleratorTypes;
 
 namespace KokoroProcessPlugin
 {
-    public class KokoroTTSProcessPlugin : ITextToSpeech
+    public class KokoroTTSProcessPlugin
     {
         tiesky.com.ISharm sm = null;
 
@@ -110,9 +112,26 @@ namespace KokoroProcessPlugin
                 case TtsPluginIPCMessageType.Release:
                     this.Dispose();
                     break;
+                case TtsPluginIPCMessageType.Setting:
+                    CommonPluginSetting setting = (CommonPluginSetting)BitConverter.ToInt32(data, 4);
+                    string accs = Encoding.UTF8.GetString(data, 8, data.Length - 8);
+                    WithSetting(setting, accs);
+                    break;
             }
 
             return Tuple.Create(false, new byte[0]);
+        }
+
+        public ITextToSpeech WithSetting(CommonPluginSetting setting, string accs)
+        {
+            switch (setting)
+            {
+                case CommonPluginSetting.ModelBasePath:
+                    modelBasePath = accs;
+                    break;
+            }
+
+            return null;
         }
 
         internal void AddWork(string txt, bool continieTalkingIfStopped = true)
@@ -174,6 +193,7 @@ namespace KokoroProcessPlugin
 
         float audioOutMul = 1 / 32768.0f;
         private string ipcID;
+        private string modelBasePath;
 
         public void FillBuffer(float[] buffer, int offset, int count)
         {
@@ -268,11 +288,12 @@ namespace KokoroProcessPlugin
         public void Init()
         {
             var assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var defaultDir = Path.Combine(assemblyPath, "Models", "kokoro.onnx");
+            var defaultDir = modelBasePath != null ? Path.Combine(modelBasePath, "Models", "kokoro.onnx") : Path.Combine(assemblyPath, "Models", "kokoro.onnx");
             tts = KokoroTTS.LoadModel(defaultDir);
 
             kokoroWavSynthesizer = new KokoroWavSynthesizer(defaultDir);
-            KokoroVoiceManager.LoadVoicesFromPath(Path.Combine(assemblyPath, "Voices"));
+            var defaultDirVoices = modelBasePath != null ? Path.Combine(modelBasePath, "Voices") : Path.Combine(assemblyPath, "Voices");
+            KokoroVoiceManager.LoadVoicesFromPath(defaultDirVoices);
             heartVoice = KokoroVoiceManager.GetVoice("af_heart");
         }
 

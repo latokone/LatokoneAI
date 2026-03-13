@@ -1,6 +1,7 @@
 ﻿using LatokoneAI.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using SkiaSharp;
+using System.Text;
 using YoloDotNet;
 using YoloDotNet.Enums;
 using YoloDotNet.ExecutionProvider.OpenVino;
@@ -13,6 +14,7 @@ public class ObjectDetection
 
     Yolo? yolo;
     private static ObjectDetection objectDetection;
+    private string modelBasePath;
 
     static void Main(string[] args)
     {
@@ -63,15 +65,30 @@ public class ObjectDetection
                     DoDetect(skBitmap);
                     return Tuple.Create(true, skBitmap.Encode(SKEncodedImageFormat.Png, 90).ToArray());
                 }
+            case ObjectDetectionPluginIPCMessageType.Setting:
+                CommonPluginSetting setting = (CommonPluginSetting)BitConverter.ToInt32(data, 4);
+                string accs = Encoding.UTF8.GetString(data, 8, data.Length - 8);
+                HandleSetting(setting, accs);
+                break;
         }
 
         return Tuple.Create(false, new byte[0]);
     }
 
+    public void HandleSetting(CommonPluginSetting setting, string accs)
+    {
+        switch (setting)
+        {
+            case CommonPluginSetting.ModelBasePath:
+                modelBasePath = accs;
+                break;
+        }
+    }
+
     public void Run()
     {
         var assemblyPath = AppContext.BaseDirectory;
-        var fullPath = Path.Combine(assemblyPath, @"Models\Yolo\yolov11s.onnx");
+        var fullPath = modelBasePath != null ? Path.Combine(modelBasePath, @"yolov11s.onnx") : Path.Combine(assemblyPath, @"Models\Yolo\yolov11s.onnx");
 
         // Fire it up! Create an instance of YoloDotNet and reuse it across your app's lifetime.
         // Prefer the 'using' pattern for automatic cleanup if you're done after a single run.

@@ -2,6 +2,7 @@
 using LatokoneAI.Common;
 using LatokoneAI.Common.Interfaces;
 using LatokoneAI.Engine.Audio;
+using LatokoneAI.Engine.Common;
 using LatokoneAI.Engine.PluginHosts.AudioPlugin;
 using LatokoneAI.Engine.PluginHosts.LLMPlugins;
 using LatokoneAI.Engine.PluginHosts.VisualPlugin;
@@ -9,7 +10,7 @@ using System.Reflection;
 
 namespace LatokoneAI.Engine
 {
-    public class Engine : IKamuAI, IDisposable
+    public class Engine : ILatokoneAI, IDisposable
     {
         private AudioEngine audioEngine;
 
@@ -24,6 +25,9 @@ namespace LatokoneAI.Engine
 
         internal ILlmPlugin? chatOllama;
 
+        List<IPluginConnection> connections = new();
+        public IEnumerable<IPluginConnection> Connections { get => connections; }
+
         AppDomain currentDomain;
         public Engine()
         {
@@ -33,6 +37,21 @@ namespace LatokoneAI.Engine
             audioEngine = new AudioEngine(this);
 
             Init();
+        }
+
+        public IPluginConnection ConnectPlugins(ILatokonePlugin from, ILatokonePlugin to)
+        {
+            var c = new PluginConnection(from, to);
+            connections.Add(c);
+
+            return c;
+        }
+
+        public void DisconnectPlugins(IPluginConnection connection)
+        {
+            connections.Remove(connection);
+            connection.Release();
+
         }
 
         public ISpeechToText CreateSpeechToTextPlugin(string pluginPath, string ipcID, int deviceIndex,  int sampleRate)
@@ -118,6 +137,12 @@ namespace LatokoneAI.Engine
 
         public void Dispose()
         {
+            foreach (var connection in connections)
+            {
+                connection.Release();
+            }
+            connections.Clear();
+
             currentDomain.AssemblyResolve -= MyResolveEventHandler;
 
             speechToTextPlugins.ForEach(p => p.Dispose());
