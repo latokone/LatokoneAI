@@ -1,9 +1,6 @@
 ﻿
 using LatokoneAI.Common;
 using LatokoneAI.Common.Interfaces;
-using NAudio.SoundFont;
-using System.ComponentModel;
-using System.Threading.Channels;
 using static LatokoneAI.Common.AcceleratorTypes;
 
 string poem1 = "";
