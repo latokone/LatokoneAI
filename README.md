@@ -58,7 +58,7 @@ Note that you need to download specific AI Models to run the examples.
 var latokoneAI = new LatokoneAI.Engine.Engine();
 
 // Load LLM plugin process
-var llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+var llmPlugin = latokoneAI.CreatePlugin(LatokoneAI.Common.PluginType.LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
 
 // Configure plugin, prioritize CPU
 llmPlugin.
@@ -69,18 +69,16 @@ llmPlugin.
 llmPlugin.InitializeAndRun();
 
 // Get responses
-llmPlugin.ResponseReceived += ChatLlm_ResponseReceived;
-
-//
-void ChatLlm_ResponseReceived(string text)
-{
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.Write(text);
-}
+llmPlugin.DataReceived += ChatLlm_ResponseReceived;
 
 Console.WriteLine("Ok, I'm ready to chat! Type 'exit' to quit.");
 
-// Simple loop to get user input
+void ChatLlm_ResponseReceived(object text)
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.Write((string)text);
+}
+
 while (true)
 {   
     string input = Console.ReadLine();
@@ -88,7 +86,7 @@ while (true)
         break;
 
     Console.ForegroundColor = ConsoleColor.Yellow;
-    llmPlugin.UserInput(input);
+    llmPlugin.Input(input);
 }
 ```
 
