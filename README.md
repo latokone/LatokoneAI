@@ -95,8 +95,17 @@ while (true)
 To connect two models (output from plugin A is sent to input in plugin B) you can:
 
 ```
-sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 1, latokoneAI.AudioEngine.SampleRateIn);
-llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+sttPlugin = latokoneAI.CreatePlugin(LatokonePluginType.STT, new AudioInPluginHost(), @"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin");
+sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]).
+    WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Whisper").
+    WithSetting(CommonPluginSetting.ModelIndex, "1").
+    WithSetting(CommonPluginSetting.SampleRate, latokoneAI.AudioEngine.SampleRateIn.ToString());
+sttPlugin.InitializeAndRun();
+
+llmPlugin = latokoneAI.CreatePlugin(LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
+    WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
+llmPlugin.InitializeAndRun();
 
 // Output from stt is automatically sent to llm...
 var connection = latokoneAI.ConnectPlugins(sttPlugin, llmPlugin);
