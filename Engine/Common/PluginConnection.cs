@@ -1,8 +1,5 @@
 ﻿using LatokoneAI.Common.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
+using static LatokoneAI.Common.PluginType;
 
 namespace LatokoneAI.Engine.Common
 {
@@ -20,20 +17,17 @@ namespace LatokoneAI.Engine.Common
             this.from = from;
             this.to = to;
 
-            if (from is ISpeechToText)
-            {
-                ISpeechToText plugin = (ISpeechToText)from;
-                plugin.TextRecognized += Plugin_SpeechToText;
+            if (from.Type == LatokonePluginType.STT)
+            {   
+                from.DataReceived += Plugin_SpeechToText;
             }
-            else if (from is ILlmPlugin)
-            {
-                ILlmPlugin plugin = (ILlmPlugin)from;
-                plugin.ResponseReceived += Plugin_LlmResponseReceived;
+            else if (from.Type == LatokonePluginType.LLM)
+            {   
+                from.DataReceived += Plugin_LlmResponseReceived;
             }
-            else if (from is IObjectDetection)
+            else if (from.Type == LatokonePluginType.ObjectDetection)
             {
-                IObjectDetection plugin = (IObjectDetection)from;
-                plugin.ImageProcessed += Plugin_ImageProcessed;
+                from.DataReceived += Plugin_ImageProcessed;
             }
         }
 
@@ -44,21 +38,21 @@ namespace LatokoneAI.Engine.Common
             DataAvailable?.Invoke(ced);
             if (!ced.Handled)
             {
-                if (to is ILlmPlugin)
+                if (to.Type == LatokonePluginType.LLM)
                 {
                     // ?
                 }
             }
         }
 
-        private void Plugin_LlmResponseReceived(string text)
+        private void Plugin_LlmResponseReceived(object data)
         {
-            HandleInput(text);
+            HandleInput((string)data);
         }
 
-        private void Plugin_SpeechToText(string text)
+        private void Plugin_SpeechToText(object text)
         {
-            HandleInput(text);
+            HandleInput((string)text);
         }
 
         void HandleInput(string text)
@@ -68,35 +62,31 @@ namespace LatokoneAI.Engine.Common
             DataAvailable?.Invoke(ced);
             if (!ced.Handled)
             {
-                if (to is ILlmPlugin)
-                {
-                    var llm = (ILlmPlugin)to;
-                    llm.UserInput(text);
+                if (to.Type == LatokonePluginType.LLM)
+                {   
+                    to.Input(text);
                 }
-                else if (to is ITextToSpeech)
+                else if (to.Type == LatokonePluginType.TTS)
                 {
-                    ITextToSpeech tts = (ITextToSpeech)to;
-                    tts.AddPartOfASentence(text);
+                    
+                    to.Input(text);
                 }
             }
         }
 
         public void Release()
         {
-            if (from is ILlmPlugin)
-            {
-                ILlmPlugin plugin = (ILlmPlugin)from;
-                plugin.ResponseReceived -= Plugin_LlmResponseReceived;
+            if (from.Type == LatokonePluginType.LLM)
+            {   
+                from.DataReceived -= Plugin_LlmResponseReceived;
             }
-            else if (from is ISpeechToText)
-            {
-                ISpeechToText plugin = (ISpeechToText)from;
-                plugin.TextRecognized -= Plugin_SpeechToText;
+            else if (from.Type == LatokonePluginType.STT)
+            {   
+                from.DataReceived -= Plugin_SpeechToText;
             }
-            else if (from is IObjectDetection)
+            else if (from.Type == LatokonePluginType.ObjectDetection)
             {
-                IObjectDetection plugin = (IObjectDetection)from;
-                plugin.ImageProcessed -= Plugin_ImageProcessed;
+                from.DataReceived -= Plugin_ImageProcessed;
             }
         }
     }

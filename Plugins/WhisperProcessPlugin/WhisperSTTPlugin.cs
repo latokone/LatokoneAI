@@ -1,6 +1,6 @@
-﻿using LatokoneAI.Common;
-using LatokoneAI.Common.Audio;
+﻿using LatokoneAI.Common.Audio;
 using LatokoneAI.Common.Interfaces;
+using LatokoneAI.Common.Messaging;
 using LatokoneAI.Common.WindowsRegistry;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
@@ -156,6 +156,19 @@ namespace WhisperProcessPlugin
                     break;
                 case CommonPluginSetting.ModelBasePath:
                     modelBasePath = accs;
+                    break;
+                case CommonPluginSetting.ModelIndex:
+                    if (int.TryParse(accs, out int num))
+                    {
+                        selectedModel = num;
+                    }
+                    break;
+                case CommonPluginSetting.SampleRate:
+                    if (int.TryParse(accs, out int srate))
+                    {
+                        sampleRate = srate;
+                        realTimeResampler.Reset(16000, srate);
+                    }
                     break;
             }
         }

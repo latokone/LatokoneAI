@@ -26,6 +26,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
     <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
+    <ProjectReference Include="..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.csproj" />
+    <ProjectReference Include="..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.csproj" />
+    <ProjectReference Include="..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.csproj" />
+    <ProjectReference Include="..\..\Plugins\YoloPluginProcess\YoloProcessPlugin.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿
 using LatokoneAI.Common;
 using LatokoneAI.Common.Interfaces;
+using LatokoneAI.Plugins.LLmaChatProcessPlugin;
 using static LatokoneAI.Common.AcceleratorTypes;
 
 string poem1 = "";
@@ -33,26 +34,27 @@ Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine("Getting things ready. This might take a while...");
 
 var latokoneAI = new LatokoneAI.Engine.Engine();
-var llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+var llmPlugin = latokoneAI.CreatePlugin(PluginType.LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
 llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
 llmPlugin.WithConfig(config);
 llmPlugin.InitializeAndRun();
 
-var llmPlugin2 = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin2");
-llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
+var llmPlugin2 = latokoneAI.CreatePlugin(PluginType.LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin2");
+llmPlugin2.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
     WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
 llmPlugin2.WithConfig(config);
 llmPlugin2.InitializeAndRun();
 
 Console.WriteLine("Let's start. Type CTRL+C to quit.\n\n");
 
-llmPlugin2.UserInput("Write a haiku about a forest. Only write one the haiku, don't explain anything. Only the haiku.");
+llmPlugin2.Input("Write a haiku about a forest. Only write one the haiku, don't explain anything. Only the haiku.");
 
-llmPlugin.ResponseReceived += ChatLlm_ResponseReceived;
-llmPlugin2.ResponseReceived += ChatLlm_ResponseReceived2;
+llmPlugin.DataReceived += ChatLlm_ResponseReceived;
+llmPlugin2.DataReceived += ChatLlm_ResponseReceived2;
 
-void ChatLlm_ResponseReceived(string text)
+void ChatLlm_ResponseReceived(object obj)
 {
+    string text = (string)obj;
     Console.ForegroundColor = ConsoleColor.Green;
     Console.Write(text);
     poem2 += text;
@@ -61,7 +63,7 @@ void ChatLlm_ResponseReceived(string text)
         poem2 = CleanLLMResponse(poem2);
         if (poem2.Trim().Length > 0)
         {
-            llmPlugin2.UserInput("Change this haiku slightly. Only respond with one haiku. Haiku to change: " + poem2);
+            llmPlugin2.Input("Change this haiku slightly. Only respond with one haiku. Haiku to change: " + poem2);
         }
         poem2 = "";
         Console.WriteLine();
@@ -69,15 +71,16 @@ void ChatLlm_ResponseReceived(string text)
 }
 
 
-void ChatLlm_ResponseReceived2(string text)
+void ChatLlm_ResponseReceived2(object obj)
 {
+    string text = (string)obj;
     Console.ForegroundColor = ConsoleColor.Blue;
     Console.Write(text);
     poem1 += text;
     if (poem1.Trim().EndsWith("User:"))
     {
         poem1 = CleanLLMResponse(poem1);
-        llmPlugin.UserInput("Change this haiku slightly. Only respond with one haiku. Haiku to change: " + poem1);
+        llmPlugin.Input("Change this haiku slightly. Only respond with one haiku. Haiku to change: " + poem1);
         poem1 = "";
         Console.WriteLine();
     }

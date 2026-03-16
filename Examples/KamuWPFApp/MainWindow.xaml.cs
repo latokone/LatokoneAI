@@ -1,5 +1,8 @@
 ﻿using GitHub.secile.Video;
+using KokoroProcessPlugin;
 using LatokoneAI.Common.Interfaces;
+using LatokoneAI.Plugins.LLmaChatProcessPlugin;
+using ObjectDetection;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.ComponentModel;
@@ -8,7 +11,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WhisperProcessPlugin;
 using static LatokoneAI.Common.AcceleratorTypes;
+using static LatokoneAI.Common.PluginType;
 
 namespace WPFExample
 {
@@ -18,10 +23,7 @@ namespace WPFExample
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         LatokoneAI.Engine.Engine latokoneAI;
-        private ISpeechToText sttPlugin;
-        private ILlmPlugin llmPlugin;
-        private ITextToSpeech ttsPlugin;
-        private IObjectDetection objectDetectionPlugin;
+        private ILatokonePlugin sttPlugin, llmPlugin, ttsPlugin, objectDetectionPlugin;
 
         internal LatokoneAI.Engine.Engine Kamu { get => latokoneAI; set => latokoneAI = value; }
 
@@ -48,24 +50,28 @@ namespace WPFExample
             latokoneAI.AudioEngine.CreateWasapiOut();
 
             // In this example, 'ggml-base.en.bin' needs to be placed in D:\Downloads\Models\Whisper
-            sttPlugin = latokoneAI.CreateSpeechToTextPlugin(@"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin", 1, latokoneAI.AudioEngine.SampleRateIn);
+            sttPlugin = latokoneAI.CreatePlugin(LatokonePluginType.STT, new AudioInPluginHost(), @"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin");
             sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]).
-                WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Whisper");
+                WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Whisper").
+                WithSetting(CommonPluginSetting.ModelIndex, "1").
+                WithSetting(CommonPluginSetting.SampleRate, latokoneAI.AudioEngine.SampleRateIn.ToString());
             sttPlugin.InitializeAndRun();
 
             // Use llamacpp runtime and Qwen model
-            llmPlugin = latokoneAI.CreateLLMPlugin(@"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
+            llmPlugin = latokoneAI.CreatePlugin(LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
             llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
                 WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
             llmPlugin.InitializeAndRun();
 
             // In this example, 'kokoro.onnx' needs to be placed in D:\Downloads\Models\Kokoro\Models and Kokoro 'voices' folder needs to be copied to D:\Downloads\Models\Kokoro
-            ttsPlugin = latokoneAI.CreateTextToSpeechPlugin(@"..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.exe", "KokoroPlugin", 0, latokoneAI.AudioEngine.SampleRate);
-            ttsPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Kokoro");
+            ttsPlugin = latokoneAI.CreatePlugin(LatokonePluginType.TTS, new AudioOutPluginHost(), @"..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.exe", "KokoroPlugin");
+            ttsPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Kokoro").
+                WithSetting(CommonPluginSetting.ModelIndex, "0").
+                WithSetting(CommonPluginSetting.SampleRate, latokoneAI.AudioEngine.SampleRate.ToString());
             ttsPlugin.InitializeAndRun();
 
             // In this example, 'yolov11s.onnx' needs to be placed in D:\Downloads\Models\Yolo
-            objectDetectionPlugin = latokoneAI.CreateVisualPlugin(@"..\..\Plugins\YoloProcessPlugin\YoloProcessPlugin.exe", "YoloPlugin");
+            objectDetectionPlugin = latokoneAI.CreatePlugin(LatokonePluginType.ObjectDetection, new VisualPluginHost(), @"..\..\Plugins\YoloProcessPlugin\YoloProcessPlugin.exe", "YoloPlugin");
             objectDetectionPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Yolo");
             objectDetectionPlugin.InitializeAndRun();
 
@@ -165,7 +171,7 @@ namespace WPFExample
                 Task.Run(() =>
                 {
                     SKBitmap bitmap = CreateImage((byte[])bmpImg, format.Size.Width, format.Size.Height);
-                    objectDetectionPlugin.DoDetect(bitmap);
+                    objectDetectionPlugin.Input(bitmap);
                     bitmap.Dispose();
                 });
 
@@ -224,13 +230,13 @@ namespace WPFExample
                 var command = txt.ToLower().Trim();
                 if (command == "seis")
                 {
-                    llmPlugin.StopTalking();
-                    ttsPlugin.StopTalking();
+                    llmPlugin.Stop();
+                    ttsPlugin.Stop();
                 }
                 else if (command == "uusi")
                 {
-                    llmPlugin.StopTalking();
-                    llmPlugin.ClearHistory();
+                    llmPlugin.Stop();
+                    llmPlugin.Reset();
                 }
                 else if (command == "cls")
                 {
@@ -242,7 +248,7 @@ namespace WPFExample
                 }
                 else
                 {
-                    llmPlugin.UserInput(command);
+                    llmPlugin.Input(command);
                     tbChat.Text += command + "\n\n";
                 }
                 tbUserInput.Text = "";
@@ -289,13 +295,13 @@ namespace WPFExample
 
                 if (command == controlWords[language][0])
                 {
-                    llmPlugin.StopTalking();
-                    ttsPlugin.StopTalking();
+                    llmPlugin.Stop();
+                    ttsPlugin.Stop();
                 }
                 else if (command == controlWords[language][1])
                 {
-                    llmPlugin.ResetState();
-                    ttsPlugin.StopTalking();
+                    llmPlugin.Reset();
+                    ttsPlugin.Stop();
                 }
                 else if (command == controlWords[language][2])
                 {
@@ -305,7 +311,7 @@ namespace WPFExample
                 {
                     if (listeningQuestion)
                     {
-                        llmPlugin.UserInput(txt);
+                        llmPlugin.Input(txt);
                         listeningQuestion = false;
                     }
                 }

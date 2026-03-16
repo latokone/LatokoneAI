@@ -3,10 +3,8 @@ using LatokoneAI.Common;
 using LatokoneAI.Common.Interfaces;
 using LatokoneAI.Engine.Audio;
 using LatokoneAI.Engine.Common;
-using LatokoneAI.Engine.PluginHosts.AudioPlugin;
-using LatokoneAI.Engine.PluginHosts.LLMPlugins;
-using LatokoneAI.Engine.PluginHosts.VisualPlugin;
 using System.Reflection;
+using static LatokoneAI.Common.PluginType;
 
 namespace LatokoneAI.Engine
 {
@@ -16,14 +14,14 @@ namespace LatokoneAI.Engine
 
         public AudioEngine AudioEngine { get => audioEngine; }
 
-        LLMPluginHost? ollamaPluginHost;
+        ILatokonePlugin? ollamaPluginHost;
 
-        List<ISpeechToText> speechToTextPlugins = new();
-        internal List<ITextToSpeech> textToSpeechPlugins = new();
-        List<ILlmPlugin> llmPlugins = new();
-        List<IObjectDetection> visualPlugins = new();
+        internal List<ILatokonePlugin> speechToTextPlugins = new();
+        internal List<ILatokonePlugin> textToSpeechPlugins = new();
+        internal List<ILatokonePlugin> llmPlugins = new();
+        internal List<ILatokonePlugin> visualPlugins = new();
 
-        internal ILlmPlugin? chatOllama;
+        internal ILatokonePlugin? chatOllama;
 
         List<IPluginConnection> connections = new();
         public IEnumerable<IPluginConnection> Connections { get => connections; }
@@ -54,36 +52,39 @@ namespace LatokoneAI.Engine
 
         }
 
-        public ISpeechToText CreateSpeechToTextPlugin(string pluginPath, string ipcID, int deviceIndex,  int sampleRate)
+        public ILatokonePlugin CreatePlugin(LatokonePluginType type, ILatokonePluginHost host, string pluginPath, string ipcID)
         {
-            var host = new AudioInPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, deviceIndex, sampleRate);
-            speechToTextPlugins.Add(pluginInstance);
-            return pluginInstance;
-        }
+            ILatokonePlugin? plugin = null;
 
-        public ILlmPlugin CreateLLMPlugin(string pluginPath, string ipcID)
-        {
-            var host = new LLMPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
-            llmPlugins.Add(pluginInstance);
-            return pluginInstance;
-        }
+            switch (type)
+            {
+                case LatokonePluginType.STT:
+                    {
+                        var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
+                        speechToTextPlugins.Add(pluginInstance);
+                        return pluginInstance;
+                    }
+                case LatokonePluginType.LLM:
+                    {
+                        var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
+                        llmPlugins.Add(pluginInstance);
+                        return pluginInstance;
+                    }
+                case LatokonePluginType.TTS:
+                    {
+                        var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
+                        textToSpeechPlugins.Add(pluginInstance);
+                        return pluginInstance;
+                    }
+                case LatokonePluginType.ObjectDetection:
+                    {
+                        var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
+                        visualPlugins.Add(pluginInstance);
+                        return pluginInstance;
+                    }
+            }
 
-        public ITextToSpeech CreateTextToSpeechPlugin(string pluginPath, string ipcID, int modelIndex, int sampleRate)
-        {
-            var host = new AudioOutPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID, modelIndex, sampleRate);
-            textToSpeechPlugins.Add(pluginInstance);
-            return pluginInstance;
-        }
-
-        public IObjectDetection CreateVisualPlugin(string pluginPath, string ipcID)
-        {
-            var host = new VisualPluginHost();
-            var pluginInstance = host.LoadPlugin(pluginPath, this, ipcID);
-            visualPlugins.Add(pluginInstance);
-            return pluginInstance;
+            return plugin;
         }
 
         internal void Init()

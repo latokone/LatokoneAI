@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Common\LatokoneAI.Common.csproj" />
     <ProjectReference Include="..\..\Engine\LatokoneAI.Engine.csproj" />
+    <ProjectReference Include="..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.csproj" />
   </ItemGroup>
 
 

@@ -1,4 +1,5 @@
-﻿using LatokoneAI.Common.WindowsRegistry;
+﻿using LatokoneAI.Common.Interfaces;
+using LatokoneAI.Common.WindowsRegistry;
 
 
 namespace LatokoneAI.Engine.Audio
@@ -7,18 +8,18 @@ namespace LatokoneAI.Engine.Audio
     {
 
         public CommonAudioProvider(
-          Engine kamu, int sampleRate,
+          Engine latokone, int sampleRate,
           int channels,
           int bufferSize,
           bool doubleBuffer, IRegistryEx registryEx)
         {
-            this.kamu = kamu;
+            this.latokone = latokone;
             this.samplRate = sampleRate;
             this.channels = channels;
 
         }
 
-        private Engine kamu;
+        private Engine latokone;
         private int samplRate;
         private int channels;
 
@@ -27,8 +28,9 @@ namespace LatokoneAI.Engine.Audio
             int retCount = count;
             int maxSamples = 512;
 
-            foreach (var plugin in kamu.textToSpeechPlugins)
+            foreach (var p in latokone.textToSpeechPlugins)
             {
+                
                 int bufferOffet = offset;
                 int buffercount = count;
 
@@ -37,7 +39,7 @@ namespace LatokoneAI.Engine.Audio
                     int workSamples = Math.Min(maxSamples, buffercount);
                     float[] workBuffer = new float[workSamples];
 
-                    plugin.FillBuffer(workBuffer, 0, workSamples);
+                    p.FillBuffer(workBuffer, 0, workSamples);
 
                     for (int i = 0; i < workSamples; i++)
                     {

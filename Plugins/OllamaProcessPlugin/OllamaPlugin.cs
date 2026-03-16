@@ -1,5 +1,5 @@
-﻿
-using LatokoneAI.Common.Interfaces;
+﻿using LatokoneAI.Common.Messaging;
+using LatokoneAI.Common.Messaging.MessageTypes;
 using Microsoft.Extensions.Configuration;
 using OllamaSharp;
 using System.Text;

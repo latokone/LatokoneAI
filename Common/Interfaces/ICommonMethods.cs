@@ -9,6 +9,8 @@ namespace LatokoneAI.Common.Interfaces
     {
         AcceleratiorPriority,
         ModelPath,
-        ModelBasePath
+        ModelBasePath,
+        ModelIndex,
+        SampleRate
     }
 }

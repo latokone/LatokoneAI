@@ -13,4 +13,8 @@
     <PackageReference Include="SkiaSharp" Version="3.116.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Messaging\MessageTypes\" />
+  </ItemGroup>
+
 </Project>

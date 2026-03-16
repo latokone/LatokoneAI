@@ -3,11 +3,11 @@ using KokoroSharp.Core;
 using KokoroSharp.Utilities;
 using LatokoneAI.Common.Audio;
 using LatokoneAI.Common.Interfaces;
+using LatokoneAI.Common.Messaging;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
-using static LatokoneAI.Common.AcceleratorTypes;
 
 namespace KokoroProcessPlugin
 {
@@ -115,23 +115,34 @@ namespace KokoroProcessPlugin
                 case TtsPluginIPCMessageType.Setting:
                     CommonPluginSetting setting = (CommonPluginSetting)BitConverter.ToInt32(data, 4);
                     string accs = Encoding.UTF8.GetString(data, 8, data.Length - 8);
-                    WithSetting(setting, accs);
+                    HandleSetting(setting, accs);
                     break;
             }
 
             return Tuple.Create(false, new byte[0]);
         }
 
-        public ITextToSpeech WithSetting(CommonPluginSetting setting, string accs)
+        public void HandleSetting(CommonPluginSetting setting, string accs)
         {
             switch (setting)
             {
                 case CommonPluginSetting.ModelBasePath:
                     modelBasePath = accs;
                     break;
+                case CommonPluginSetting.ModelIndex:
+                    if (int.TryParse(accs, out int num))
+                    {
+                        modelIndex = num;
+                    }
+                    break;
+                case CommonPluginSetting.SampleRate:
+                    if (int.TryParse(accs, out int srate))
+                    {
+                        ratio = KokoroPlayback.waveFormat.SampleRate / (float)srate;
+                        realTimeResampler.Reset(srate, KokoroPlayback.waveFormat.SampleRate);
+                    }
+                    break;
             }
-
-            return null;
         }
 
         internal void AddWork(string txt, bool continieTalkingIfStopped = true)
