@@ -6,6 +6,9 @@ using ObjectDetection;
 using SkiaSharp;
 using SkiaSharp.Views.WPF;
 using System.ComponentModel;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
@@ -30,6 +33,11 @@ namespace WPFExample
         UsbCamera camera;
 
         BitmapSource objectDetectionImage;
+
+        // Use config file
+        string jsonFile = "config.json";
+        Config? config;
+
         public BitmapSource ObjectDetectionImage
         {
             get => objectDetectionImage;
@@ -49,10 +57,12 @@ namespace WPFExample
             latokoneAI = new LatokoneAI.Engine.Engine();
             latokoneAI.AudioEngine.CreateWasapiOut();
 
+            LoadConfig();
+            
             // In this example, 'ggml-base.en.bin' needs to be placed in D:\Downloads\Models\Whisper
             sttPlugin = latokoneAI.CreatePlugin(LatokonePluginType.STT, new AudioInPluginHost(), @"..\..\Plugins\WhisperProcessPlugin\WhisperProcessPlugin.exe", "WhisperPlugin");
             sttPlugin.WithSetting([Accelerator.Vulcan, Accelerator.Cpu]).
-                WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Whisper").
+                WithSetting(CommonPluginSetting.ModelBasePath, config.WhisperFilePath).
                 WithSetting(CommonPluginSetting.ModelIndex, "1").
                 WithSetting(CommonPluginSetting.SampleRate, latokoneAI.AudioEngine.SampleRateIn.ToString());
             sttPlugin.InitializeAndRun();
@@ -60,19 +70,19 @@ namespace WPFExample
             // Use llamacpp runtime and Qwen model
             llmPlugin = latokoneAI.CreatePlugin(LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
             llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
-                WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf");
+                WithSetting(CommonPluginSetting.ModelPath, config.LlmFilePath);
             llmPlugin.InitializeAndRun();
 
             // In this example, 'kokoro.onnx' needs to be placed in D:\Downloads\Models\Kokoro\Models and Kokoro 'voices' folder needs to be copied to D:\Downloads\Models\Kokoro
             ttsPlugin = latokoneAI.CreatePlugin(LatokonePluginType.TTS, new AudioOutPluginHost(), @"..\..\Plugins\KokoroProcessPlugin\KokoroProcessPlugin.exe", "KokoroPlugin");
-            ttsPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Kokoro").
+            ttsPlugin.WithSetting(CommonPluginSetting.ModelBasePath, config.KokoroFilePath).
                 WithSetting(CommonPluginSetting.ModelIndex, "0").
                 WithSetting(CommonPluginSetting.SampleRate, latokoneAI.AudioEngine.SampleRate.ToString());
             ttsPlugin.InitializeAndRun();
 
             // In this example, 'yolov11s.onnx' needs to be placed in D:\Downloads\Models\Yolo
             objectDetectionPlugin = latokoneAI.CreatePlugin(LatokonePluginType.ObjectDetection, new VisualPluginHost(), @"..\..\Plugins\YoloProcessPlugin\YoloProcessPlugin.exe", "YoloPlugin");
-            objectDetectionPlugin.WithSetting(CommonPluginSetting.ModelBasePath, @"D:\Downloads\Models\Yolo");
+            objectDetectionPlugin.WithSetting(CommonPluginSetting.ModelBasePath, config.YoloFilePath);
             objectDetectionPlugin.InitializeAndRun();
 
             latokoneAI.AudioEngine.Play();
@@ -317,5 +327,44 @@ namespace WPFExample
                 }
             });
         }
+
+        void LoadConfig()
+        {
+            try
+            {
+                // Ensure the file exists
+                if (!File.Exists(jsonFile))
+                {
+                    Console.WriteLine($"Error: JSON file '{jsonFile}' not found.");
+                    Application.Current.Shutdown();
+                }
+
+                // Read JSON content from file
+                string jsonContent = File.ReadAllText(jsonFile);
+
+                // Deserialize into Config object
+                config = JsonSerializer.Deserialize<Config>(jsonContent);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("config.json error: " + e.ToString());
+                Application.Current.Shutdown();
+            }
+        }
+    }
+    // Define a class that matches the JSON structure
+    public class Config
+    {
+        [JsonPropertyName("LlmFilePath")]
+        public string LlmFilePath { get; set; }
+
+        [JsonPropertyName("WhisperFilePath")]
+        public string WhisperFilePath { get; set; }
+
+        [JsonPropertyName("KokoroFilePath")]
+        public string KokoroFilePath { get; set; }
+
+        [JsonPropertyName("YoloFilePath")]
+        public string YoloFilePath { get; set; }
     }
 }

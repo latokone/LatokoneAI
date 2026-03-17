@@ -16,5 +16,11 @@
     <ProjectReference Include="..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
 </Project>

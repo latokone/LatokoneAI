@@ -1,0 +1,6 @@
+{
+  "LlmFilePath": "D:\\Downloads\\Models\\Distill-Qwen-7B-Uncensored.i1-Q4_K_M.gguf",
+  "WhisperFilePath": "D:\\Downloads\\Models\\Whisper",
+  "KokoroFilePath": "D:\\Downloads\\Models\\Kokoro",
+  "YoloFilePath": "D:\\Downloads\\Models\\Yolo"
+}

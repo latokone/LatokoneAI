@@ -2,6 +2,8 @@
 using LatokoneAI.Common;
 using LatokoneAI.Common.Interfaces;
 using LatokoneAI.Plugins.LLmaChatProcessPlugin;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using static LatokoneAI.Common.AcceleratorTypes;
 
 string poem1 = "";
@@ -10,8 +12,33 @@ string poem2 = "";
 // This example demonstrates two LLM plugins having a discussion with each other. The first plugin is prompted to write a haiku about a forest, and the second plugin is prompted to change that haiku slightly.
 // Then the first plugin is prompted to change the changed haiku slightly, and so on. The conversation continues indefinitely until the user stops the program.
 
+// Use config file
+string jsonFile = "config.json";
+Config config;
+
+try
+{
+    // Ensure the file exists
+    if (!File.Exists(jsonFile))
+    {
+        Console.WriteLine($"Error: JSON file '{jsonFile}' not found.");
+        return;
+    }
+
+    // Read JSON content from file
+    string jsonContent = File.ReadAllText(jsonFile);
+
+    // Deserialize into Config object
+    config = JsonSerializer.Deserialize<Config>(jsonContent);
+}
+catch (Exception e)
+{
+    Console.WriteLine("config.json error: " + e.ToString());
+    return;
+}
+
 // Create the LLM configuration. This configuration will be passed to the LLM plugins, and they will use it to load the model and set up the chat history.
-LlmConfig config = new LlmConfig()
+LlmConfig configLlm = new LlmConfig()
 {
     SystemRole = "Transcript of a dialog, where the User interacts with an Assistant named Bob. Bob is helpful, kind, honest, good at writing, and never fails to answer the User's requests immediately and with precision.",
 
@@ -35,14 +62,14 @@ Console.WriteLine("Getting things ready. This might take a while...");
 
 var latokoneAI = new LatokoneAI.Engine.Engine();
 var llmPlugin = latokoneAI.CreatePlugin(PluginType.LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin");
-llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
-llmPlugin.WithConfig(config);
+llmPlugin.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, config.LlmFilePath);
+llmPlugin.WithConfig(configLlm);
 llmPlugin.InitializeAndRun();
 
 var llmPlugin2 = latokoneAI.CreatePlugin(PluginType.LatokonePluginType.LLM, new LLMPluginHost(), @"..\..\Plugins\LlamaChatProcessPlugin\LlamaChatProcessPlugin.exe", "LlamaPlugin2");
 llmPlugin2.WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).
-    WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, @"D:\Downloads\Models\phi-2.Q5_K_M.gguf");
-llmPlugin2.WithConfig(config);
+    WithSetting([Accelerator.Cpu, Accelerator.Vulcan]).WithSetting(CommonPluginSetting.ModelPath, config.LlmFilePath);
+llmPlugin2.WithConfig(configLlm);
 llmPlugin2.InitializeAndRun();
 
 Console.WriteLine("Let's start. Type CTRL+C to quit.\n\n");
@@ -101,6 +128,12 @@ string CleanLLMResponse(string text)
 
 while (true)
 {
+    Thread.Sleep(100);
 }
 
-Console.ForegroundColor = ConsoleColor.White;
+// Define a class that matches the JSON structure
+public class Config
+{
+    [JsonPropertyName("LlmFilePath")]
+    public string? LlmFilePath { get; set; }
+}
